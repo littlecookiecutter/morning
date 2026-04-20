@@ -1,23 +1,24 @@
 const express = require('express');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Load curated quotes from local file
 const quotesPath = path.join(__dirname, 'quotes.json');
 let quotesDB = [];
+
 try {
     const data = fs.readFileSync(quotesPath, 'utf8');
     quotesDB = JSON.parse(data);
+    console.log(`✅ Loaded ${quotesDB.length} curated quotes.`);
 } catch (err) {
-    console.error('Error loading quotes.json:', err.message);
-    quotesDB = [{ text: "Be on your own side today.", author: "Unknown" }];
+    console.error('❌ Error loading quotes.json:', err.message);
+    quotesDB = [
+        { text: "Be on your own side today.", author: "Unknown" }
+    ];
 }
-
-const keywords = ["self", "growth", "fear", "mind", "calm", "focus", "progress", "strength"];
 
 app.get('/morning', async (req, res) => {
     // Select quote based on day of year to avoid repetition
@@ -27,7 +28,7 @@ app.get('/morning', async (req, res) => {
     const oneDay = 1000 * 60 * 60 * 24;
     const dayOfYear = Math.floor(diff / oneDay);
     
-    // Simple rotation + randomization within a small window to keep it fresh but non-repeating for a week
+    // Rotation logic: base index by day + small random window to vary within a week
     const baseIndex = dayOfYear % quotesDB.length;
     const windowSize = Math.min(7, quotesDB.length);
     const randomOffset = Math.floor(Math.random() * windowSize);
@@ -38,6 +39,12 @@ app.get('/morning', async (req, res) => {
     res.json({ quote });
 });
 
+// Serve static frontend
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+    console.log(`📖 Open http://localhost:${PORT} in your browser.`);
 });

@@ -114,7 +114,7 @@ body {
 
 async function loadQuote() {
     try {
-        const response = await fetch("http://localhost:3000/morning");
+        const response = await fetch("/morning");
         const data = await response.json();
         document.getElementById("quote").innerText = `${data.quote.text} — ${data.quote.author}`;
     } catch (err) {
