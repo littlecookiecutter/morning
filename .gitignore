@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes. The changes consist only of source/config files (README.md, package.json) and a deleted file (readme), with no build artifacts, dependencies, or temporary files present.
+Nothing should be ignored based on the provided file changes. The changes only include source/config files (`quotes.json` and `server.js`) which should not be added to .gitignore.
