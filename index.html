@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Morning</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f7f6f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* screens */
+.screen {
+    display: none;
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+}
+.active { display: block; }
+
+/* title */
+.title {
+    font-size: 28px;
+    font-weight: 400;
+    margin-top: 20px;
+    color: #2c2c2c;
+}
+
+/* quote */
+.quote {
+    font-size: 15px;
+    color: #777;
+    margin: 20px 40px;
+    line-height: 1.5;
+}
+
+/* circle */
+.circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    margin: 40px auto;
+
+    background: radial-gradient(circle at 30% 30%, #ffd1a1, #ff8a3d);
+    box-shadow:
+        0 12px 30px rgba(255, 140, 60, 0.25),
+        inset 0 -6px 12px rgba(255, 120, 40, 0.2);
+
+    transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* breathing text */
+.breath-text {
+    font-size: 16px;
+    color: #555;
+    letter-spacing: 0.5px;
+}
+
+/* content blocks */
+.block {
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    margin: 12px;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.block b {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* skip */
+.skip {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #999;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SCREEN 1 -->
+<div id="breathScreen" class="screen active">
+    <div class="title">Good morning</div>
+    <div class="quote" id="quote"></div>
+
+    <div class="circle" id="circle"></div>
+    <div class="breath-text" id="breathText">Inhale</div>
+
+    <div class="skip" onclick="goNext()">skip</div>
+</div>
+
+<!-- SCREEN 2 -->
+<div id="contentScreen" class="screen">
+    <div id="content"></div>
+</div>
+
+<script>
+
+/* ---------- QUOTES ---------- */
+
+async function loadQuote() {
+    try {
+        const response = await fetch("http://localhost:3000/morning");
+        const data = await response.json();
+        document.getElementById("quote").innerText = `${data.quote.text} — ${data.quote.author}`;
+    } catch (err) {
+        console.error("Failed to load quote:", err);
+        document.getElementById("quote").innerText = "Be on your own side today.";
+    }
+}
+
+loadQuote();
+
+
+/* ---------- BREATHING ---------- */
+
+let phase = 0;
+let cycles = 0;
+
+const phases = [
+    { text: "Inhale", scale: 1.1 },
+    { text: "Hold", scale: 1.1 },
+    { text: "Exhale", scale: 0.9 },
+    { text: "Hold", scale: 0.9 }
+];
+
+const circle = document.getElementById("circle");
+const text = document.getElementById("breathText");
+
+function run() {
+    const p = phases[phase];
+
+    text.innerText = p.text;
+    circle.style.transform = `scale(${p.scale})`;
+
+    phase++;
+
+    if (phase === phases.length) {
+        phase = 0;
+        cycles++;
+
+        if (cycles >= 10) {
+            goNext();
+        }
+    }
+}
+
+/* автозапуск */
+setInterval(run, 4000);
+run();
+
+
+/* ---------- NAV ---------- */
+
+function goNext() {
+    document.getElementById("breathScreen").classList.remove("active");
+    document.getElementById("contentScreen").classList.add("active");
+}
+
+
+/* ---------- CONTENT ---------- */
+
+function loadContent() {
+    const el = document.getElementById("content");
+
+    el.innerHTML = `
+    <div class="block">
+        <b>ML Insight</b>
+        <p>Good models depend on good data. Data engineering is often more important than model choice.</p>
+    </div>
+
+    <div class="block">
+        <b>Medical Story</b>
+        <p>A small overlooked symptom helped a doctor catch a dangerous disease early.</p>
+    </div>
+
+    <div class="block">
+        <b>Inspiration</b>
+        <iframe width="100%" height="200"
+        src=" https://www.youtube.com/embed/ZXsQAXx_ao0 "
+        frameborder="0" allowfullscreen></iframe>
+    </div>
+    `;
+}
+
+loadContent();
+
+</script>
+
+</body>
+</html>
