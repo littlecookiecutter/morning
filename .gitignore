@@ -1,4 +1,1 @@
-```
-node_modules/
-package-lock.json
-```
+Nothing should be ignored based on the provided file changes. The changes consist only of source/config files (README.md, package.json) and a deleted file (readme), with no build artifacts, dependencies, or temporary files present.
