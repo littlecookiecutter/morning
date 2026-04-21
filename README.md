@@ -1,177 +1,114 @@
-# 🌅 Morning App
+# Morning App 🌅
 
-Минималистичное утреннее приложение для настройки на день с дыхательной практикой, глубокими цитатами и персонализированным контентом.
+A calm, mindful morning routine app with AI-curated content for junior developers.
 
-## ✨ Функции
+## Features
 
-- **Дыхательная практика**: 10 циклов дыхания (inhale/hold/exhale) с анимацией
-- **Курируемые цитаты**: 60+ глубоких цитат от Юнга, Франкла, стоиков и других мыслителей
-- **AI-суммаризация**: Реальные статьи упрощаются до уровня junior разработчика (500-700 слов)
-- **Персонализированный контент**: 
-  - ML Insight из Dev.to (подробный пересказ)
-  - Medical/Health новости из NewsAPI (подробный пересказ)
-  - Спокойные документальные видео с YouTube (без мотивационного шума)
-- **Двухколоночный layout**: Адаптивный дизайн для удобного чтения
-- **Кнопки обновления**: Мгновенная замена любой статьи или видео без перезагрузки
-- **Ссылки на оригиналы**: Быстрый переход к исходным статьям
+- **Breathing Exercise**: Guided breathing animation to start the day calmly
+- **Curated Quotes**: 60+ deep, philosophical quotes from thinkers like Jung, Frankl, Nietzsche, and Stoic philosophers
+- **AI-Summarized Articles**: 
+  - ML/Software Engineering insights from Dev.to
+  - Health & Wellness stories from NewsAPI
+  - Content is summarized by AI into long-form (10 min read), easy-to-understand articles
+- **Thoughtful Videos**: Calm documentaries and "day in the life" videos (no generic motivation)
+- **Headspace-style UI**: Clean, minimal design with refresh buttons for each content block
 
-## 🚀 Быстрый запуск
+## Quick Start
 
-### 1. Установка зависимостей
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Настройка API ключей (опционально)
+### 2. Create `.env` File
 
-Создайте файл `.env` в корне проекта:
+Create a file named `.env` in the project root with your API keys:
 
 ```env
-OPENROUTER_API_KEY=sk-or-v1-ваш_ключ
-NEWSAPI_KEY=ваш_ключ_newsapi
-YOUTUBE_API_KEY=ваш_ключ_youtube
+OPENROUTER_API_KEY=your_openrouter_key_here
+NEWSAPI_KEY=your_newsapi_key_here
+YOUTUBE_API_KEY=your_youtube_api_key_here
 PORT=3000
 ```
 
-**Без ключей** приложение работает в демо-режиме с заранее заданным контентом.
+#### How to Get API Keys:
 
-#### Где получить ключи:
+1. **OpenRouter** (for AI summarization):
+   - Go to [openrouter.ai](https://openrouter.ai/)
+   - Sign up and create an API key in the "Keys" section
+   - Uses model: `qwen/qwen-2.5-72b-instruct`
 
-| Сервис | Ссылка | Тариф |
-|--------|--------|-------|
-| **OpenRouter** | [openrouter.ai/keys](https://openrouter.ai/keys) | Есть бесплатный лимит |
-| **NewsAPI** | [newsapi.org/register](https://newsapi.org/register) | Developer (бесплатно) |
-| **YouTube Data API** | [console.cloud.google.com](https://console.cloud.google.com/apis/library/youtube.googleapis.com) | Бесплатный квота |
+2. **NewsAPI** (for health articles):
+   - Go to [newsapi.org](https://newsapi.org/)
+   - Get a free Developer API key
 
-### 3. Запуск сервера
+3. **YouTube Data API** (for videos):
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project
+   - Enable "YouTube Data API v3"
+   - Create credentials → API Key
+
+### 3. Run the Server
 
 ```bash
 npm start
 ```
 
-### 4. Открыть в браузере
+### 4. Open in Browser
 
-Перейдите на **http://localhost:3000**
+Navigate to: **http://localhost:3000**
 
-## 📁 Структура проекта
+## Without API Keys
+
+The app will work in **Demo Mode**:
+- ✅ Quotes: Always work (local library of 60 quotes)
+- ⚠️ Articles: Show pre-written fallback content (still long-form and valuable)
+- ⚠️ Videos: Show a default calming video
+
+## Project Structure
 
 ```
 morning/
-├── server.js          # Бэкенд (Express + API интеграции + AI суммаризация)
-├── quotes.js          # Библиотека из 60+ курируемых цитат
-├── index.html         # Фронтенд (HTML/CSS/JS + двухколоночный layout)
-├── .env               # API ключи (не коммитить в git!)
-├── package.json       # Зависимости и скрипты
-└── README.md          # Этот файл
+├── server.js          # Express backend with AI integration
+├── index.html         # Frontend (HTML/CSS/JS)
+├── quotes.js          # Library of 60 curated quotes
+├── package.json       # Dependencies
+├── .env               # API keys (create this)
+└── README.md          # This file
 ```
 
-## 🔧 Как это работает
+## API Endpoints
 
-### Цитаты
-- Локальная библиотека `quotes.js` (60+ цитат)
-- Выбор по дню года + случайное окно в 7 дней
-- Никаких внешних API — мгновенная загрузка
-- Авторы: Карл Юнг, Виктор Франкл, Руми, Сенека, Ницше, Эрих Фромм, Ирвин Ялом и др.
-- Теги: self-compassion, anxiety, growth, identity, inner strength
+- `GET /` - Serves the main HTML page
+- `GET /morning` - Returns all content (quote + 2 articles + video)
+- `GET /refresh/:type` - Refreshes individual content block (`ml`, `health`, or `video`)
 
-### Контент
-1. **ML статья**: 
-   - Fetch из Dev.to API (теги: javascript, beginners)
-   - AI суммаризация через OpenRouter (qwen/qwen-2.5-72b-instruct)
-   - Подробный пересказ 500-700 слов простым языком
-   - Кнопка обновления + ссылка на оригинал
+## Content Philosophy
 
-2. **Health статья**: 
-   - Fetch из NewsAPI (category: health)
-   - AI суммаризация с фокусом на психологию и wellness
-   - Кнопка обновления + ссылка на оригинал
+### Quotes
+- No generic motivational quotes ("Believe in yourself!")
+- Deep, grounding quotes from philosophers and psychologists
+- Topics: self-compassion, anxiety, growth, inner strength
 
-3. **Видео**: 
-   - Поиск по YouTube API с новыми запросами:
-     - "day in the life of a scientist"
-     - "mini documentary artist life"
-     - "slow living lifestyle documentary"
-     - "pottery making process quiet"
-   - Фильтрация мотивационного шума (исключаются "motivation", "success tips", "get rich")
-   - Длительность: 5-12 минут
-   - Кнопка обновления
+### Articles
+- Written for junior developers who get easily overwhelmed
+- Long-form (10 min read) for deep understanding
+- Clear structure with headings and bullet points
+- Links to original sources
 
-### Fallback логика
-Если API ключ отсутствует или запрос не удался → показывается качественный демо-контент с полезными инсайтами.
+### Videos
+- Calm, observational content
+- "Day in the life", mini-documentaries, slow living
+- NO motivational speeches or productivity hacks
 
-## 🎯 API Endpoints
-
-### GET /morning
-
-Возвращает весь контент для утренней сессии:
-
-```json
-{
-  "quote": {
-    "text": "The privilege of a lifetime is to become who you truly are.",
-    "author": "Carl Jung"
-  },
-  "ml": {
-    "title": "Understanding JavaScript Closures",
-    "text": "AI-generated detailed summary (500-700 words)...",
-    "image": "https://...",
-    "url": "https://dev.to/..."
-  },
-  "health": {
-    "title": "New Study on Sleep",
-    "text": "AI-generated detailed summary...",
-    "image": "https://...",
-    "url": "https://..."
-  },
-  "video": {
-    "id": "youtube_video_id"
-  }
-}
-```
-
-### GET /refresh
-
-Возвращает новый контент для обновления блоков без перезагрузки страницы:
-
-```json
-{
-  "ml": { ... },
-  "health": { ... },
-  "video": { ... }
-}
-```
-
-## 🛠 Технологии
+## Tech Stack
 
 - **Backend**: Node.js, Express
-- **Frontend**: Vanilla JS, CSS Grid (без фреймворков)
-- **AI**: OpenRouter (модель qwen/qwen-2.5-72b-instruct)
-- **APIs**: Dev.to, NewsAPI, YouTube Data API v3
+- **AI**: OpenRouter API (Qwen 2.5 72B)
+- **Data Sources**: Dev.to API, NewsAPI, YouTube Data API
+- **Frontend**: Vanilla HTML/CSS/JS (no frameworks)
 
-## 📝 Заметки
+## License
 
-- Приложение **не требует сборки** — работает напрямую
-- Все API запросы выполняются **параллельно** для скорости
-- Цитаты **не повторяются** в течение недели благодаря умной ротации
-- Демо-режим позволяет тестировать UI без ключей
-- **Двухколоночный layout** на больших экранах, **одна колонка** на мобильных
-- **Кнопки 🔄** для мгновенного обновления любого блока
-- **Ссылки на оригиналы** под каждой статьёй
-
-## 🔐 Безопасность
-
-Файл `.env` **не должен** попадать в репозиторий. Добавьте его в `.gitignore`:
-
-```
-.env
-node_modules/
-```
-
-## 🎨 Дизайн-принципы
-
-- Минимализм: ничего лишнего
-- Спокойствие: мягкие цвета, плавные анимации
-- Фокус на контенте: читабельные шрифты, правильные отступы
-- Адаптивность: удобно на любом устройстве
-- Без мотивационного токсичности: только глубокий, осмысленный контент
+MIT
