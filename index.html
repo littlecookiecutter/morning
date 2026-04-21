@@ -3,90 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Morning - Daily Inspiration</title>
-  <!-- Подключаем новый CSS -->
+  <title>Morning - Daily Inspiration & Planning</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Верхняя навигация -->
+  <!-- Navigation -->
   <nav class="navbar">
     <div class="logo">morning</div>
     <div class="nav-links">
-      <a href="#">Calm</a>
-      <a href="#">Learn</a>
-      <a href="#">Today</a>
-      <a href="#">System</a>
-      <a href="#" class="btn-demo">Request Demo</a>
+      <a href="#" class="nav-link active" data-screen="calm">🌅 Calm</a>
+      <a href="#" class="nav-link" data-screen="learn">📚 Learn</a>
+      <a href="#" class="nav-link" data-screen="today">📅 Today</a>
+      <a href="#" class="nav-link" data-screen="system">🗂️ System</a>
     </div>
   </nav>
 
   <div class="container">
     
-    <!-- Главный заголовок -->
-    <section class="hero">
-      <h1>State of Mind</h1>
-      <p>Curated insights for your morning routine. Mental health, productivity, and inspiration.</p>
+    <!-- SCREEN 1: CALM (Breathing + Quote) -->
+    <section id="screen-calm" class="screen active">
+      <div class="hero">
+        <h1>Breathe & Reflect</h1>
+        <p>Take a moment to center yourself before starting your day.</p>
+      </div>
+      
+      <div class="breathing-container">
+        <div class="breathing-circle">
+          <div class="circle-inner"></div>
+        </div>
+        <p class="breathing-text">Breathe in...</p>
+      </div>
+      
+      <div class="quote-card">
+        <p class="quote-text" id="daily-quote">Loading quote...</p>
+        <p class="quote-author" id="quote-author"></p>
+      </div>
     </section>
 
-    <!-- Сетка карточек (Контент) -->
-    <section class="grid" id="content-grid">
-      <!-- Карточка 1 -->
-      <article class="card">
-        <div class="card-image gradient-1"></div>
-        <div class="card-content">
-          <span class="tag">White Paper</span>
-          <h3>Mental Health Awareness Month: A Toolkit for HR Leaders</h3>
-          <p>How organizations can support employees in managing work stress and burnout effectively.</p>
-          <a href="#" class="read-more">Read article</a>
-        </div>
-      </article>
-
-      <!-- Карточка 2 -->
-      <article class="card">
-        <div class="card-image gradient-2"></div>
-        <div class="card-content">
-          <span class="tag">Research Report</span>
-          <h3>The Workforce State of Mind in 2025</h3>
-          <p>Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.</p>
-          <a href="#" class="read-more">Read article</a>
-        </div>
-      </article>
-
-      <!-- Карточка 3 -->
-      <article class="card">
-        <div class="card-image gradient-3"></div>
-        <div class="card-content">
-          <span class="tag">Inspiration</span>
-          <h3>Sam Altman on the Future of AI and Creativity</h3>
-          <p>A deep dive into how generative models are reshaping the way we think about human potential.</p>
-          <a href="#" class="read-more">Read article</a>
-        </div>
-      </article>
-
-      <!-- Карточка 4 -->
-      <article class="card">
-        <div class="card-image gradient-4"></div>
-        <div class="card-content">
-          <span class="tag">ML Insight</span>
-          <h3>Why professional AI coding tools need purpose-built solutions</h3>
-          <p>Moving beyond generic LLMs to create tools that truly understand developer workflows.</p>
-          <a href="#" class="read-more">Read article</a>
-        </div>
-      </article>
+    <!-- SCREEN 2: LEARN (Articles) -->
+    <section id="screen-learn" class="screen">
+      <div class="hero">
+        <h1>State of Mind</h1>
+        <p>Curated insights for your morning routine. Mental health, productivity, and inspiration.</p>
+      </div>
+      
+      <div class="grid" id="articles-grid">
+        <!-- Articles will be loaded here -->
+      </div>
+      
+      <div class="cta-section">
+        <h2>Don't miss a thing</h2>
+        <p>Additional copy line for the email sign up.</p>
+        <form class="cta-form" onsubmit="event.preventDefault(); alert('Thank you!');">
+          <input type="email" placeholder="Your email address" required>
+          <button type="submit">Sign up</button>
+        </form>
+      </div>
     </section>
 
-    <!-- Желтый блок внизу -->
-    <section class="cta-section">
-      <h2>Don't miss a thing</h2>
-      <p>Additional copy line for the email sign up.</p>
-      <form class="cta-form">
-        <input type="email" placeholder="Your email address">
-        <button type="button">Sign up</button>
-      </form>
+    <!-- SCREEN 3: TODAY (7-day planning) -->
+    <section id="screen-today" class="screen">
+      <div class="planning-header">
+        <h1>This Week</h1>
+        <button class="btn-secondary" onclick="showCompletedModal()">✓ Completed</button>
+      </div>
+      
+      <!-- 7-Day Schedule -->
+      <div class="schedule-container">
+        <div class="schedule-grid" id="schedule-grid">
+          <!-- Days will be generated here -->
+        </div>
+      </div>
+      
+      <!-- Tasks Section -->
+      <div class="section-block">
+        <h2>Tasks</h2>
+        <div class="tasks-list" id="today-tasks">
+          <!-- Tasks loaded here -->
+        </div>
+      </div>
+      
+      <!-- Plans Section -->
+      <div class="section-block">
+        <h2>Plans</h2>
+        <div class="plans-list" id="today-plans">
+          <!-- Plans loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: SYSTEM (Full system) -->
+    <section id="screen-system" class="screen">
+      <div class="planning-header">
+        <h1>Full System</h1>
+        <div class="action-buttons">
+          <button class="btn-primary" onclick="openAddModal('task')">+ Task</button>
+          <button class="btn-primary" onclick="openAddModal('plan')">+ Plan</button>
+          <button class="btn-primary" onclick="openAddModal('event')">+ Event</button>
+          <button class="btn-secondary" onclick="document.getElementById('csv-input').click()">📥 Import CSV</button>
+          <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="importCSV(event)">
+        </div>
+      </div>
+      
+      <!-- Active Tasks (not on main) -->
+      <div class="section-block">
+        <h2>Active Tasks</h2>
+        <div class="tasks-list" id="system-tasks">
+          <!-- Tasks loaded here -->
+        </div>
+      </div>
+      
+      <!-- Active Plans (not on main) -->
+      <div class="section-block">
+        <h2>Active Plans</h2>
+        <div class="plans-list" id="system-plans">
+          <!-- Plans loaded here -->
+        </div>
+      </div>
+      
+      <!-- Archive -->
+      <div class="section-block">
+        <div class="archive-header" onclick="toggleArchive()">
+          <h2>📦 Archive</h2>
+          <span class="toggle-icon" id="archive-toggle">▼</span>
+        </div>
+        <div class="archive-content" id="archive-content">
+          <div class="tasks-list" id="archive-tasks"></div>
+          <div class="plans-list" id="archive-plans"></div>
+        </div>
+      </div>
     </section>
 
   </div>
 
+  <!-- Edit Modal -->
+  <div class="modal" id="edit-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Edit Item</h3>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Form fields generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Activity Modal -->
+  <div class="modal" id="completed-modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>Completed Activity</h3>
+        <button class="close-btn" onclick="closeCompletedModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="showCompletedPeriod(7)">Last 7 days</button>
+          <button class="toggle-btn" onclick="showCompletedPeriod(30)">Last 30 days</button>
+        </div>
+        <div id="completed-list" class="completed-list">
+          <!-- Completed items loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="quotes.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
