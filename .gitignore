@@ -1,1 +1,18 @@
-Nothing should be ignored based on the provided file changes. The changes only include source/config files (`quotes.json` and `server.js`) which should not be added to .gitignore.
+```
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+.env.
+
+# Editors
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+```
