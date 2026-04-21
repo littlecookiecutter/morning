@@ -304,59 +304,107 @@ function renderQuote() {
   document.getElementById('quote-author').textContent = `— ${quote.author}`;
 }
 
-// ===== ARTICLES =====
+// ===== ARTICLES WITH API & FILTERING =====
+let currentFilter = 'all';
+let allArticles = [];
+
+async function fetchArticles() {
+  try {
+    // Using a mock API response for now - can be replaced with real API
+    const mockArticles = [
+      {
+        title: 'Mental Health Awareness Month: A Toolkit for HR Leaders',
+        excerpt: 'How organizations can support employees in managing work stress and burnout effectively.',
+        tag: 'White Paper',
+        gradient: 'gradient-1',
+        url: '#'
+      },
+      {
+        title: 'The Workforce State of Mind in 2025',
+        excerpt: 'Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.',
+        tag: 'Research Report',
+        gradient: 'gradient-2',
+        url: '#'
+      },
+      {
+        title: 'Sam Altman on the Future of AI and Creativity',
+        excerpt: 'A deep dive into how generative models are reshaping the way we think about human potential.',
+        tag: 'Inspiration',
+        gradient: 'gradient-5',
+        url: '#'
+      },
+      {
+        title: 'Why professional AI coding tools need purpose-built solutions',
+        excerpt: 'Moving beyond generic LLMs to create tools that truly understand developer workflows.',
+        tag: 'ML Insight',
+        gradient: 'gradient-4',
+        url: '#'
+      },
+      {
+        title: 'Building Resilience in Uncertain Times',
+        excerpt: 'Practical strategies for maintaining mental wellness during periods of change.',
+        tag: 'White Paper',
+        gradient: 'gradient-6',
+        url: '#'
+      },
+      {
+        title: 'The Science of Mindful Leadership',
+        excerpt: 'How mindfulness practices can transform your approach to management and decision-making.',
+        tag: 'Inspiration',
+        gradient: 'gradient-3',
+        url: '#'
+      }
+    ];
+    
+    allArticles = mockArticles;
+    renderArticles();
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    document.getElementById('articles-grid').innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);">Failed to load articles. Please try again.</p>';
+  }
+}
+
 function renderArticles() {
-  const articles = [
-    {
-      title: 'Mental Health Awareness Month: A Toolkit for HR Leaders',
-      excerpt: 'How organizations can support employees in managing work stress and burnout effectively.',
-      tag: 'White Paper',
-      gradient: 'gradient-1'
-    },
-    {
-      title: 'The Workforce State of Mind in 2025',
-      excerpt: 'Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.',
-      tag: 'Research Report',
-      gradient: 'gradient-2'
-    },
-    {
-      title: 'Sam Altman on the Future of AI and Creativity',
-      excerpt: 'A deep dive into how generative models are reshaping the way we think about human potential.',
-      tag: 'Inspiration',
-      gradient: 'gradient-5'
-    },
-    {
-      title: 'Why professional AI coding tools need purpose-built solutions',
-      excerpt: 'Moving beyond generic LLMs to create tools that truly understand developer workflows.',
-      tag: 'ML Insight',
-      gradient: 'gradient-4'
-    },
-    {
-      title: 'Building Resilience in Uncertain Times',
-      excerpt: 'Practical strategies for maintaining mental wellness during periods of change.',
-      tag: 'Wellness',
-      gradient: 'gradient-6'
-    },
-    {
-      title: 'The Science of Mindful Leadership',
-      excerpt: 'How mindfulness practices can transform your approach to management and decision-making.',
-      tag: 'Leadership',
-      gradient: 'gradient-3'
-    }
-  ];
-  
   const container = document.getElementById('articles-grid');
-  container.innerHTML = articles.map((article, index) => `
+  
+  let filtered = allArticles;
+  if (currentFilter !== 'all') {
+    filtered = allArticles.filter(a => a.tag === currentFilter);
+  }
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);grid-column:1/-1;">No articles found for this category.</p>';
+    return;
+  }
+  
+  container.innerHTML = filtered.map(article => `
     <article class="card">
       <div class="card-image ${article.gradient}"></div>
       <div class="card-content">
         <span class="tag">${article.tag}</span>
         <h3>${article.title}</h3>
         <p>${article.excerpt}</p>
-        <a href="#" class="read-more">Read article</a>
+        <a href="${article.url}" class="read-more" onclick="event.preventDefault(); alert('Opening: ${article.title}')">Read article →</a>
       </div>
     </article>
   `).join('');
+}
+
+function setupArticleFilters() {
+  const filterContainer = document.getElementById('article-filters');
+  if (!filterContainer) return;
+  
+  filterContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('filter-btn')) {
+      // Update active state
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
+      
+      // Update filter and re-render
+      currentFilter = e.target.dataset.category;
+      renderArticles();
+    }
+  });
 }
 
 // ===== SCHEDULE (7-DAY VIEW) =====
@@ -469,7 +517,6 @@ function renderTodayPlans() {
   
   container.innerHTML = plans.map(plan => {
     const progress = getPlanProgress(plan);
-    const weeklyProgress = getWeeklyProgress(plan);
     const completedSteps = plan.steps.filter(s => s.done).length;
     
     return `
@@ -481,7 +528,6 @@ function renderTodayPlans() {
         <div class="plan-progress">
           <div class="progress-bar" style="width: ${progress}%"></div>
         </div>
-        <div class="weekly-progress" style="width: ${weeklyProgress}%"></div>
         <div class="plan-meta">
           ${plan.deadline ? `<span>📅 ${formatDateDisplay(plan.deadline)}</span>` : ''}
           <span>${plan.important ? '★ Important' : ''}</span>
@@ -1027,7 +1073,8 @@ document.addEventListener('DOMContentLoaded', function() {
   initMockData();
   initBreathing();
   renderQuote();
-  renderArticles();
+  fetchArticles();
+  setupArticleFilters();
   
   // Setup navigation
   document.querySelectorAll('.nav-link').forEach(link => {
