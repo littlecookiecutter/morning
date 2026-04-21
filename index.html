@@ -301,9 +301,12 @@ run();
 
 /* ---------- NAV ---------- */
 
+let contentLoaded = false;
+
 function goNext() {
     document.getElementById("breathScreen").classList.remove("active");
     document.getElementById("contentScreen").classList.add("active");
+    // Load content automatically when navigating to content screen
     loadContent();
 }
 
@@ -312,6 +315,12 @@ function goNext() {
 
 async function loadContent() {
     const el = document.getElementById("content");
+    
+    // Only load if not already loaded
+    if (contentLoaded) {
+        return;
+    }
+    contentLoaded = true;
     
     try {
         const response = await fetch("http://localhost:3000/morning");
