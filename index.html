@@ -827,7 +827,235 @@ body {
     </div>
 </div>
 
+<!-- SCREEN 3: PLANNING (7-DAY VIEW) -->
+<div id="planningScreen" class="screen">
+    <div class="title">This Week</div>
+    
+    <!-- Schedule Section -->
+    <div id="scheduleSection" style="margin-top: 20px;"></div>
+    
+    <!-- Tasks Section -->
+    <div class="section-header">Tasks</div>
+    <div id="mainTasksSection"></div>
+    
+    <!-- Plans Section -->
+    <div class="section-header">Plans</div>
+    <div id="mainPlansSection"></div>
+</div>
+
+<!-- SCREEN 4: FULL SYSTEM -->
+<div id="systemScreen" class="screen">
+    <div class="title">Full System</div>
+    
+    <!-- Active Tasks -->
+    <div class="section-header">Active Tasks</div>
+    <div id="systemTasksSection"></div>
+    
+    <!-- Active Plans -->
+    <div class="section-header">Active Plans</div>
+    <div id="systemPlansSection"></div>
+    
+    <!-- Archive Section -->
+    <div class="archive-section">
+        <div class="archive-header" onclick="toggleArchive()">
+            <span class="archive-title">Archive</span>
+            <span class="archive-toggle" id="archiveToggle">▶</span>
+        </div>
+        <div class="archive-content" id="archiveContent"></div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-btn" onclick="openAddModal()">+</button>
+    
+    <!-- CSV Import -->
+    <div class="csv-import">
+        <button class="csv-btn" onclick="document.getElementById('csvInput').click()">📥 Import CSV</button>
+        <input type="file" id="csvInput" class="hidden-input" accept=".csv" onchange="importCSV(event)">
+    </div>
+</div>
+
+<!-- Modal Overlay -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent"></div>
+</div>
+
 <script>
+
+// ========== DATA STORE ==========
+
+let store = {
+    tasks: [],
+    plans: [],
+    events: []
+};
+
+// Helper functions
+function getDateString(offsetDays) {
+    const date = new Date();
+    date.setDate(date.getDate() + offsetDays);
+    return date.toISOString().split('T')[0];
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function saveStore() {
+    localStorage.setItem('morningAppStore', JSON.stringify(store));
+}
+
+function loadStore() {
+    const saved = localStorage.getItem('morningAppStore');
+    if (saved) {
+        try {
+            store = JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to load store:', e);
+        }
+    }
+    
+    // Initialize with mock data if empty
+    if (store.tasks.length === 0 && store.plans.length === 0 && store.events.length === 0) {
+        initializeMockData();
+    }
+}
+
+// Mock data initialization
+function initializeMockData() {
+    const today = getDateString(0);
+    const tomorrow = getDateString(1);
+    const in3Days = getDateString(3);
+    const in5Days = getDateString(5);
+    const in10Days = getDateString(10);
+    
+    store.tasks = [
+        {
+            id: 't1',
+            title: 'Complete project proposal',
+            deadline: tomorrow,
+            important: true,
+            tags: ['work', 'urgent'],
+            status: 'todo',
+            estimatedTime: 90,
+            deltaTime: 0
+        },
+        {
+            id: 't2',
+            title: 'Review quarterly reports',
+            deadline: in3Days,
+            important: false,
+            tags: ['work'],
+            status: 'partial',
+            estimatedTime: 60,
+            deltaTime: 20
+        },
+        {
+            id: 't3',
+            title: 'Buy groceries',
+            deadline: today,
+            important: false,
+            tags: ['personal'],
+            status: 'todo',
+            estimatedTime: 30,
+            deltaTime: 0
+        },
+        {
+            id: 't4',
+            title: 'Schedule dentist appointment',
+            deadline: in5Days,
+            important: true,
+            tags: ['health'],
+            status: 'todo',
+            estimatedTime: 15,
+            deltaTime: 0
+        },
+        {
+            id: 't5',
+            title: 'Old completed task',
+            deadline: getDateString(-2),
+            important: false,
+            tags: ['archive'],
+            status: 'done',
+            estimatedTime: 45,
+            deltaTime: 45
+        }
+    ];
+    
+    store.plans = [
+        {
+            id: 'p1',
+            title: 'Learn TypeScript',
+            deadline: in10Days,
+            important: true,
+            tags: ['learning', 'development'],
+            steps: [
+                { title: 'Complete basics tutorial', done: true, completedAt: getDateString(-5) },
+                { title: 'Build a small project', done: true, completedAt: getDateString(-2) },
+                { title: 'Study advanced types', done: false },
+                { title: 'Read documentation', done: false },
+                { title: 'Contribute to open source', done: false }
+            ],
+            createdAt: getDateString(-7)
+        },
+        {
+            id: 'p2',
+            title: 'Home renovation',
+            deadline: in5Days,
+            important: false,
+            tags: ['personal', 'home'],
+            steps: [
+                { title: 'Choose paint colors', done: true, completedAt: getDateString(-3) },
+                { title: 'Buy materials', done: false },
+                { title: 'Paint living room', done: false },
+                { title: 'Install new fixtures', done: false }
+            ],
+            createdAt: getDateString(-10)
+        },
+        {
+            id: 'p3',
+            title: 'Completed plan',
+            deadline: getDateString(-5),
+            important: false,
+            tags: ['archive'],
+            steps: [
+                { title: 'Step 1', done: true, completedAt: getDateString(-10) },
+                { title: 'Step 2', done: true, completedAt: getDateString(-8) }
+            ],
+            createdAt: getDateString(-15)
+        }
+    ];
+    
+    store.events = [
+        {
+            id: 'e1',
+            title: 'Team meeting',
+            date: today,
+            recurring: true
+        },
+        {
+            id: 'e2',
+            title: 'Doctor appointment',
+            date: tomorrow,
+            recurring: false
+        },
+        {
+            id: 'e3',
+            title: 'Dinner with friends',
+            date: in3Days,
+            recurring: false
+        },
+        {
+            id: 'e4',
+            title: 'Weekly review',
+            date: in5Days,
+            recurring: true
+        }
+    ];
+    
+    saveStore();
+}
 
 /* ---------- QUOTES ---------- */
 
