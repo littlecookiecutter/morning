@@ -16,13 +16,29 @@ const getFetch = async () => {
     return fetch;
 };
 
-// --- AI Summarization via OpenRouter ---
-async function summarizeWithAI(text, title) {
+// --- AI Summarization via OpenRouter (Detailed & Structured) ---
+async function summarizeWithAI(text, title, type) {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) return null;
+    if (!apiKey || !text) return null;
 
     try {
         const fetch = await getFetch();
+        const prompt = `
+You are a helpful mentor for a junior developer who gets easily overwhelmed.
+Summarize the following ${type} article titled "${title}".
+
+Rules:
+1. Write a detailed, structured, and engaging summary (approx. 500-700 words).
+2. Focus on key ideas, practical takeaways, and the "why" it matters.
+3. Remove noise, ads, and overly technical jargon. Explain complex terms simply.
+4. Tone: Calm, supportive, insightful (like a senior explaining to a junior).
+5. Do NOT be generic. Be specific to the content provided.
+6. Output ONLY the summary text, no intro/outro fluff.
+
+Article Content:
+${text.substring(0, 5000)}
+        `.trim();
+
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -36,11 +52,11 @@ async function summarizeWithAI(text, title) {
                 messages: [
                     {
                         role: 'system',
-                        content: 'Summarize this article for a junior-level developer. Keep it clear, structured, and not too simple. Focus on key ideas, remove noise. Max length: ~5 minutes reading. Return ONLY the summary text, no intro/outro.'
+                        content: 'You are a thoughtful editor. Provide clear, deep, but accessible summaries.'
                     },
                     {
                         role: 'user',
-                        content: `Title: ${title}\n\nContent: ${text.substring(0, 4000)}`
+                        content: prompt
                     }
                 ]
             })
@@ -59,19 +75,22 @@ async function summarizeWithAI(text, title) {
 async function fetchMLArticle() {
     try {
         const fetch = await getFetch();
-        const response = await fetch('https://dev.to/api/articles?tag=javascript&per_page=5');
+        const response = await fetch('https://dev.to/api/articles?tag=javascript&tag=beginners&per_page=10');
         if (!response.ok) throw new Error('Dev.to API error');
         
         const articles = await response.json();
         if (!articles.length) return null;
 
         const article = articles[Math.floor(Math.random() * articles.length)];
-        const summary = await summarizeWithAI(article.description || article.title, article.title);
+        // Combine description and body for better context if available
+        const fullText = article.body ? `${article.description}\n\n${article.body}` : article.description;
+        const summary = await summarizeWithAI(fullText, article.title, "Software Engineering");
 
         return {
             title: article.title,
             text: summary || article.description || 'Good models depend on good data. Data engineering is often more important than model choice.',
-            image: article.cover_image || null
+            image: article.cover_image || null,
+            url: article.url // Original link
         };
     } catch (err) {
         console.error('ML article fetch failed:', err.message);
@@ -86,7 +105,7 @@ async function fetchHealthArticle() {
 
     try {
         const fetch = await getFetch();
-        const url = `https://newsapi.org/v2/top-headlines?category=health&language=en&apiKey=${apiKey}&pageSize=5`;
+        const url = `https://newsapi.org/v2/top-headlines?category=health&language=en&apiKey=${apiKey}&pageSize=10`;
         const response = await fetch(url);
         if (!response.ok) throw new Error('NewsAPI error');
         
@@ -94,12 +113,14 @@ async function fetchHealthArticle() {
         if (!data.articles || !data.articles.length) return null;
 
         const article = data.articles[Math.floor(Math.random() * data.articles.length)];
-        const summary = await summarizeWithAI(article.description || article.content, article.title);
+        const fullText = article.content || article.description;
+        const summary = await summarizeWithAI(fullText, article.title, "Health & Psychology");
 
         return {
             title: article.title,
             text: summary || article.description || 'A small overlooked symptom helped a doctor catch a dangerous disease early.',
-            image: article.urlToImage || null
+            image: article.urlToImage || null,
+            url: article.url // Original link
         };
     } catch (err) {
         console.error('Health article fetch failed:', err.message);
@@ -107,16 +128,28 @@ async function fetchHealthArticle() {
     }
 }
 
-// --- Fetch YouTube Video ---
+// --- Fetch YouTube Video (Calm, Observational, No Motivation) ---
 async function fetchYouTubeVideo() {
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) return null;
 
     try {
         const fetch = await getFetch();
-        const topics = ['mindset', 'productivity', 'calm', 'self-development'];
-        const topic = topics[Math.floor(Math.random() * topics.length)];
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&duration=medium&q=${topic}&key=${apiKey}&maxResults=5`;
+        
+        // New queries: calm, real life, documentaries
+        const queries = [
+            "day in the life of a scientist",
+            "mini documentary artist life",
+            "slow living lifestyle documentary",
+            "a day in the life creative person",
+            "short documentary interesting people",
+            "writer daily routine documentary",
+            "ocean documentary slow",
+            "pottery making process quiet"
+        ];
+        
+        const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=medium&q=${encodeURIComponent(randomQuery)}&key=${apiKey}&maxResults=5`;
         
         const response = await fetch(url);
         if (!response.ok) throw new Error('YouTube API error');
@@ -124,7 +157,16 @@ async function fetchYouTubeVideo() {
         const data = await response.json();
         if (!data.items || !data.items.length) return null;
 
+        // Pick a random one from top 5 to vary results
         const video = data.items[Math.floor(Math.random() * data.items.length)];
+        
+        // Basic filter: skip if title contains "motivation", "success tips" etc.
+        const titleLower = video.snippet.title.toLowerCase();
+        if (titleLower.includes('motivation') || titleLower.includes('success tips') || titleLower.includes('get rich')) {
+            console.log('Skipped generic video:', video.snippet.title);
+            return null; // Trigger retry or fallback
+        }
+
         return { id: video.id.videoId };
     } catch (err) {
         console.error('YouTube fetch failed:', err.message);
@@ -149,17 +191,19 @@ app.get('/morning', async (req, res) => {
     // Fallback to demo if APIs fail
     const ml = mlData || {
         title: 'ML Insight',
-        text: 'Good models depend on good data. Data engineering is often more important than model choice.',
-        image: null
+        text: 'Good models depend on good data. Data engineering is often more important than model choice. When you start, don\'t rush to fancy algorithms. Spend time understanding your data.',
+        image: null,
+        url: null
     };
 
     const health = healthData || {
         title: 'Medical Story',
-        text: 'A small overlooked symptom helped a doctor catch a dangerous disease early.',
-        image: null
+        text: 'A small overlooked symptom helped a doctor catch a dangerous disease early. Details matter. In your own life, don\'t ignore small signs of stress. Listening to your body is a skill.',
+        image: null,
+        url: null
     };
 
-    const video = videoData || { id: 'ZXsQAXx_ao0' }; // Default motivational video
+    const video = videoData || { id: 'L_Guz73e6fw' }; // Default calm/observational video (e.g., slow TV)
 
     console.log(`📰 ML: ${mlData ? 'Real' : 'Demo'} | 🏥 Health: ${healthData ? 'Real' : 'Demo'} | 🎬 Video: ${videoData ? 'Real' : 'Demo'}`);
 
@@ -169,6 +213,35 @@ app.get('/morning', async (req, res) => {
         health,
         video
     });
+});
+
+// --- Refresh Endpoint (Get new content without reloading page) ---
+app.get('/refresh', async (req, res) => {
+    console.log('🔄 Refreshing content...');
+    
+    const [mlData, healthData, videoData] = await Promise.all([
+        fetchMLArticle(),
+        fetchHealthArticle(),
+        fetchYouTubeVideo()
+    ]);
+
+    const ml = mlData || {
+        title: 'ML Insight',
+        text: 'Good models depend on good data. Data engineering is often more important than model choice.',
+        image: null,
+        url: null
+    };
+
+    const health = healthData || {
+        title: 'Medical Story',
+        text: 'A small overlooked symptom helped a doctor catch a dangerous disease early.',
+        image: null,
+        url: null
+    };
+
+    const video = videoData || { id: 'L_Guz73e6fw' };
+
+    res.json({ ml, health, video });
 });
 
 // Serve static frontend
