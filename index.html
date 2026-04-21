@@ -271,81 +271,121 @@ body {
 }
 
 /* ---------- PLANNING SCREEN STYLES ---------- */
-.day-section {
-    background: white;
-    border-radius: 18px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    text-align: left;
+
+/* Horizontal 7-day schedule grid */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    overflow-x: auto;
 }
 
-.day-header {
-    font-size: 13px;
+@media (max-width: 900px) {
+    .schedule-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.day-card {
+    background: white;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    min-height: 140px;
+    transition: all 0.2s ease;
+}
+
+.day-card.today {
+    background: linear-gradient(135deg, #fff8f0 0%, #fff 100%);
+    border: 1px solid #ffe5cc;
+}
+
+.day-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.day-card-name {
+    font-size: 12px;
     font-weight: 600;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
-.day-date {
-    font-weight: 400;
+.day-card-date {
+    font-size: 11px;
     color: #999;
+    margin-top: 2px;
 }
 
-.schedule-item {
+.day-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.schedule-mini-item {
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 6px;
+    line-height: 1.3;
 }
 
-.schedule-item:last-child {
-    border-bottom: none;
+.schedule-mini-item.event {
+    background: #e3f2fd;
+    color: #1976d2;
 }
 
-.schedule-time {
-    font-size: 12px;
-    color: #999;
-    min-width: 50px;
+.schedule-mini-item.task {
+    background: #fff3e0;
+    color: #f57c00;
 }
 
-.schedule-title {
-    font-size: 14px;
-    color: #333;
-    flex: 1;
+.schedule-mini-item.plan {
+    background: #f3e5f5;
+    color: #7b1fa2;
 }
 
-.schedule-type {
+.mini-icon {
     font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: #f0f0f0;
-    color: #666;
+    flex-shrink: 0;
 }
 
-.schedule-type.event { background: #e3f2fd; color: #1976d2; }
-.schedule-type.task { background: #fff3e0; color: #f57c00; }
-.schedule-type.plan { background: #f3e5f5; color: #7b1fa2; }
+.day-empty {
+    text-align: center;
+    color: #ddd;
+    font-size: 18px;
+    padding: 20px 0;
+}
 
 /* Task/Plan cards */
 .item-card {
     background: white;
-    border-radius: 14px;
-    padding: 16px;
+    border-radius: 16px;
+    padding: 18px;
     margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .item-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     transform: translateY(-1px);
 }
 
@@ -832,7 +872,7 @@ body {
     <div class="title">This Week</div>
     
     <!-- Schedule Section -->
-    <div id="scheduleSection" style="margin-top: 20px;"></div>
+    <div id="scheduleSection"></div>
     
     <!-- Tasks Section -->
     <div class="section-header">Tasks</div>
@@ -900,6 +940,40 @@ function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatDayName(dateStr) {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (dateStr === today.toISOString().split('T')[0]) return 'Today';
+    if (dateStr === tomorrow.toISOString().split('T')[0]) return 'Tomorrow';
+    
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
+}
+
+function formatTime(minutes) {
+    if (!minutes) return '';
+    const hours = minutes / 60;
+    if (hours === Math.floor(hours)) {
+        return `${hours}h`;
+    }
+    return `${hours.toFixed(1)}h`.replace('.0h', 'h');
+}
+
+function isToday(dateStr) {
+    return dateStr === new Date().toISOString().split('T')[0];
+}
+
+function isWithinLastDays(dateStr, days) {
+    const targetDate = new Date(dateStr);
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - days);
+    pastDate.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    return targetDate >= pastDate;
 }
 
 function saveStore() {
@@ -1304,65 +1378,66 @@ function renderPlanningScreen() {
     }
 }
 
-// Render schedule grouped by day
+// Render schedule with horizontal 7-day layout
 function renderSchedule() {
     const container = document.getElementById('scheduleSection');
     const today = new Date();
-    let html = '';
-    
+
+    let html = '<div class="schedule-grid">';
+
     for (let i = 0; i < 7; i++) {
         const date = new Date(today);
         date.setDate(date.getDate() + i);
         const dateStr = date.toISOString().split('T')[0];
-        const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { weekday: 'long' });
-        
+        const dayName = formatDayName(dateStr);
+        const isToday = i === 0;
+
         // Get events, task deadlines, plan deadlines for this day
         const dayEvents = store.events.filter(e => e.date === dateStr);
         const taskDeadlines = store.tasks.filter(t => t.deadline === dateStr && t.status !== 'done');
-        const planDeadlines = store.plans.filter(p => p.deadline === dateStr);
-        
-        if (dayEvents.length > 0 || taskDeadlines.length > 0 || planDeadlines.length > 0) {
-            html += `<div class="day-section">
-                <div class="day-header">
-                    <span>${dayName}</span>
-                    <span class="day-date">${formatDate(dateStr)}</span>
-                </div>`;
-            
-            // Events first
-            dayEvents.forEach(e => {
-                html += `<div class="schedule-item">
-                    <span class="schedule-time">${e.recurring ? '🔄' : ''}</span>
-                    <span class="schedule-title">${e.title}</span>
-                    <span class="schedule-type event">Event</span>
-                </div>`;
-            });
-            
-            // Task deadlines
-            taskDeadlines.forEach(t => {
-                html += `<div class="schedule-item">
-                    <span class="schedule-time"></span>
-                    <span class="schedule-title">${t.title}</span>
-                    <span class="schedule-type task">Task</span>
-                </div>`;
-            });
-            
-            // Plan deadlines
-            planDeadlines.forEach(p => {
-                html += `<div class="schedule-item">
-                    <span class="schedule-time"></span>
-                    <span class="schedule-title">${p.title}</span>
-                    <span class="schedule-type plan">Plan</span>
-                </div>`;
-            });
-            
-            html += '</div>';
-        }
-    }
-    
-    container.innerHTML = html || '<div class="empty-state">No scheduled items this week</div>';
-}
+        const planDeadlines = store.plans.filter(p => p.deadline === dateStr && !isArchivedPlan(p));
 
-// Render system screen (full system)
+        const hasItems = dayEvents.length > 0 || taskDeadlines.length > 0 || planDeadlines.length > 0;
+
+        html += `<div class="day-card ${isToday ? 'today' : ''}">
+            <div class="day-card-header">
+                <span class="day-card-name">${dayName}</span>
+                <span class="day-card-date">${formatDate(dateStr)}</span>
+            </div>
+            <div class="day-card-content">`;
+
+        // Events first
+        dayEvents.forEach(e => {
+            html += `<div class="schedule-mini-item event">
+                ${e.recurring ? '<span class="mini-icon">🔄</span>' : ''}
+                <span>${e.title}</span>
+            </div>`;
+        });
+
+        // Task deadlines
+        taskDeadlines.forEach(t => {
+            html += `<div class="schedule-mini-item task">
+                <span>${t.title}</span>
+            </div>`;
+        });
+
+        // Plan deadlines
+        planDeadlines.forEach(p => {
+            html += `<div class="schedule-mini-item plan">
+                <span>${p.title}</span>
+            </div>`;
+        });
+
+        if (!hasItems) {
+            html += '<div class="day-empty">—</div>';
+        }
+
+        html += '</div></div>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
 function renderSystemScreen() {
     const today = new Date().toISOString().split('T')[0];
     const sevenDaysFromNow = getDateString(7);
@@ -1430,10 +1505,9 @@ function isArchivedPlan(plan) {
 // Render a task card
 function renderTaskCard(task, isSystemView, isArchived = false) {
     const checkedClass = task.status === 'done' ? 'checked' : '';
-    const tagsHtml = task.tags.map(tag => `<span class="item-tag">${tag}</span>`).join('');
-    const deadlineHtml = task.deadline ? `<span class="item-deadline">📅 ${formatDate(task.deadline)}</span>` : '';
+    const deadlineHtml = task.deadline ? `<span class="item-deadline">${formatDate(task.deadline)}</span>` : '';
     const importantHtml = task.important ? '<span class="item-important">★</span>' : '';
-    const timeHtml = task.estimatedTime ? `<span class="item-time">⏱ ${task.estimatedTime}m</span>` : '';
+    const timeHtml = task.estimatedTime ? `<span class="item-time">${formatTime(task.estimatedTime)}</span>` : '';
     const opacityStyle = isArchived ? 'opacity:0.6;' : '';
     
     return `<div class="item-card" onclick="editTask('${task.id}')" style="${opacityStyle}">
@@ -1442,7 +1516,6 @@ function renderTaskCard(task, isSystemView, isArchived = false) {
             <div class="item-content">
                 <div class="item-title">${task.title}</div>
                 <div class="item-meta">
-                    ${tagsHtml}
                     ${deadlineHtml}
                     ${importantHtml}
                     ${timeHtml}
@@ -1463,8 +1536,7 @@ function renderPlanCard(plan, isSystemView, isArchived = false) {
     const weeklyCompleted = plan.steps.filter(s => s.done && s.completedAt && s.completedAt >= sevenDaysAgo).length;
     const weeklyProgress = totalSteps > 0 ? (weeklyCompleted / totalSteps * 100) : 0;
     
-    const tagsHtml = plan.tags.map(tag => `<span class="item-tag">${tag}</span>`).join('');
-    const deadlineHtml = plan.deadline ? `<span class="item-deadline">📅 ${formatDate(plan.deadline)}</span>` : '';
+    const deadlineHtml = plan.deadline ? `<span class="item-deadline">${formatDate(plan.deadline)}</span>` : '';
     const importantHtml = plan.important ? '<span class="item-important">★</span>' : '';
     const opacityStyle = isArchived ? 'opacity:0.6;' : '';
     
@@ -1472,7 +1544,6 @@ function renderPlanCard(plan, isSystemView, isArchived = false) {
         <div class="item-content">
             <div class="item-title">${plan.title}</div>
             <div class="item-meta">
-                ${tagsHtml}
                 ${deadlineHtml}
                 ${importantHtml}
                 <span class="item-time">${completedSteps}/${totalSteps} steps</span>
