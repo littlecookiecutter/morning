@@ -1,47 +1,20 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 require('dotenv').config();
+
+// --- Load curated quotes from local module ---
+const { getDailyQuote } = require('./quotes.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Load curated quotes from local file ---
-const quotesPath = path.join(__dirname, 'quotes.json');
-let quotesDB = [];
-
-try {
-    const data = fs.readFileSync(quotesPath, 'utf8');
-    quotesDB = JSON.parse(data);
-    console.log(`✅ Loaded ${quotesDB.length} curated quotes.`);
-} catch (err) {
-    console.error('❌ Error loading quotes.json:', err.message);
-    quotesDB = [
-        { text: "Be on your own side today.", author: "Unknown" }
-    ];
-}
+console.log(`✅ Loaded curated quotes library.`);
 
 // --- Helper: Dynamic import for node-fetch ---
 const getFetch = async () => {
     const { default: fetch } = await import('node-fetch');
     return fetch;
 };
-
-// --- Get Daily Quote (local, no API) ---
-function getDailyQuote() {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
-    
-    const baseIndex = dayOfYear % quotesDB.length;
-    const windowSize = Math.min(7, quotesDB.length);
-    const randomOffset = Math.floor(Math.random() * windowSize);
-    const selectedIndex = (baseIndex + randomOffset) % quotesDB.length;
-    
-    return quotesDB[selectedIndex];
-}
 
 // --- AI Summarization via OpenRouter ---
 async function summarizeWithAI(text, title) {
