@@ -1,8 +1,10 @@
-
-> morning-app@1.0.0 start
-> node server.js
-
-◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 ✅ Loaded curated quotes library.
 🚀 Server running at http://localhost:3000
 📖 Open http://localhost:3000 in your browser.
+⏳ Generating morning content...
+📰 ML: Real | 🏥 Health: Demo | 🎬 Video: Demo
+⏳ Generating morning content...
+📰 ML: Real | 🏥 Health: Demo | 🎬 Video: Demo
+⏳ Generating morning content...
+📰 ML: Real | 🏥 Health: Demo | 🎬 Video: Demo
