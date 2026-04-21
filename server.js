@@ -28,15 +28,16 @@ You are a helpful mentor for a junior developer who gets easily overwhelmed.
 Summarize the following ${type} article titled "${title}".
 
 Rules:
-1. Write a detailed, structured, and engaging summary (approx. 500-700 words).
+1. Write a COMPREHENSIVE, detailed summary suitable for 10 minutes of reading (approx. 1000-1500 words). Do NOT be brief.
 2. Focus on key ideas, practical takeaways, and the "why" it matters.
 3. Remove noise, ads, and overly technical jargon. Explain complex terms simply.
 4. Tone: Calm, supportive, insightful (like a senior explaining to a junior).
 5. Do NOT be generic. Be specific to the content provided.
-6. Output ONLY the summary text, no intro/outro fluff.
+6. Structure with clear paragraphs and logical flow.
+7. Output ONLY the summary text, no intro/outro fluff.
 
 Article Content:
-${text.substring(0, 5000)}
+${text.substring(0, 8000)}
         `.trim();
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
