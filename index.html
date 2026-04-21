@@ -69,32 +69,99 @@ body {
 .block {
     background: white;
     border-radius: 18px;
-    padding: 18px;
-    margin: 12px;
+    padding: 20px;
+    margin: 16px;
     text-align: left;
     box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    position: relative;
 }
 
 .block b {
     font-weight: 500;
     display: block;
-    margin-bottom: 6px;
-    font-size: 16px;
+    margin-bottom: 8px;
+    font-size: 17px;
+    color: #2c2c2c;
 }
 
 .block p {
     margin: 0;
-    line-height: 1.6;
+    line-height: 1.7;
     color: #444;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .block img {
     width: 100%;
-    height: 180px;
+    height: 200px;
     object-fit: cover;
     border-radius: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+}
+
+/* Refresh button */
+.refresh-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+    transition: color 0.2s;
+    padding: 4px;
+}
+.refresh-btn:hover {
+    color: #ff8a3d;
+}
+
+/* Original link */
+.original-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #ff8a3d;
+    text-decoration: none;
+}
+.original-link:hover {
+    text-decoration: underline;
+}
+
+/* Two-column layout for larger screens */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .content-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .block-full {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Video block specific */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #000;
+}
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
 /* skip */
@@ -128,7 +195,7 @@ body {
 
 <!-- SCREEN 2 -->
 <div id="contentScreen" class="screen">
-    <div id="content"></div>
+    <div id="content" class="content-grid"></div>
 </div>
 
 <script>
@@ -205,7 +272,7 @@ function goNext() {
 
 /* ---------- CONTENT RENDER ---------- */
 
-function renderContent() {
+async function renderContent() {
     const el = document.getElementById("content");
     const data = window.morningData;
     
@@ -216,27 +283,66 @@ function renderContent() {
 
     const mlImg = data.ml.image ? `<img src="${data.ml.image}" alt="ML article">` : '';
     const healthImg = data.health.image ? `<img src="${data.health.image}" alt="Health article">` : '';
+    
+    const mlLink = data.ml.url ? `<a href="${data.ml.url}" target="_blank" class="original-link">Read original article →</a>` : '';
+    const healthLink = data.health.url ? `<a href="${data.health.url}" target="_blank" class="original-link">Read original article →</a>` : '';
 
     el.innerHTML = `
     <div class="block">
-        <b>${data.ml.title}</b>
+        <button class="refresh-btn" onclick="refreshBlock('ml')" title="Get new article">🔄</button>
+        <b>ML Insight</b>
         ${mlImg}
         <p>${data.ml.text}</p>
+        ${mlLink}
     </div>
 
     <div class="block">
-        <b>${data.health.title}</b>
+        <button class="refresh-btn" onclick="refreshBlock('health')" title="Get new article">🔄</button>
+        <b>Medical Story</b>
         ${healthImg}
         <p>${data.health.text}</p>
+        ${healthLink}
     </div>
 
-    <div class="block">
+    <div class="block block-full">
+        <button class="refresh-btn" onclick="refreshBlock('video')" title="Get new video">🔄</button>
         <b>Inspiration</b>
-        <iframe width="100%" height="200"
-        src="https://www.youtube.com/embed/${data.video.id}"
-        frameborder="0" allowfullscreen></iframe>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/${data.video.id}" 
+            frameborder="0" allowfullscreen></iframe>
+        </div>
     </div>
     `;
+}
+
+async function refreshBlock(type) {
+    try {
+        const btn = event.target;
+        btn.style.transform = 'rotate(360deg)';
+        btn.style.transition = 'transform 0.5s';
+        
+        const response = await fetch("http://localhost:3000/refresh");
+        const data = await response.json();
+        
+        // Update only the specific block
+        if (type === 'ml') {
+            window.morningData.ml = data.ml;
+        } else if (type === 'health') {
+            window.morningData.health = data.health;
+        } else if (type === 'video') {
+            window.morningData.video = data.video;
+        }
+        
+        // Re-render
+        renderContent();
+        
+        setTimeout(() => {
+            btn.style.transform = 'rotate(0deg)';
+        }, 500);
+    } catch (err) {
+        console.error("Failed to refresh:", err);
+        alert("Could not load new content. Please try again.");
+    }
 }
 
 </script>
