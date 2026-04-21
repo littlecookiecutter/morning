@@ -5,11 +5,16 @@
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["morning", "quotes", "breathing"],
+  "keywords": [
+    "morning",
+    "quotes",
+    "breathing"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Morning routine app with breathing animation and inspirational quotes",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-fetch": "^3.3.2"
   }
