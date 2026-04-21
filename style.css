@@ -213,6 +213,55 @@ body {
   font-weight: 600;
 }
 
+/* ===== FILTER BUTTONS (Articles) ===== */
+.filter-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: var(--hs-white);
+  color: var(--hs-text-grey);
+  border: 2px solid var(--hs-text-light);
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-btn:hover {
+  border-color: var(--hs-orange);
+  color: var(--hs-orange);
+}
+
+.filter-btn.active {
+  background: var(--hs-orange);
+  color: var(--hs-white);
+  border-color: var(--hs-orange);
+}
+
+/* ===== VIDEO CONTAINER (CTA Section) ===== */
+.video-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 24px auto 0;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  background: var(--hs-white);
+}
+
+.video-container iframe {
+  width: 100%;
+  height: 394px;
+  display: block;
+}
+
 /* ===== CARDS GRID (Articles) ===== */
 .grid {
   display: grid;
@@ -427,16 +476,18 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 12px;
-  min-width: 700px;
+  min-width: 840px;
 }
 
 .day-card {
   background: var(--hs-white);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 20px;
   box-shadow: var(--shadow-sm);
-  min-height: 180px;
+  min-height: 200px;
   transition: var(--transition);
+  display: flex;
+  flex-direction: column;
 }
 
 .day-card:hover {
@@ -462,21 +513,22 @@ body {
 }
 
 .day-date {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   color: var(--hs-dark);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .day-items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  flex: 1;
 }
 
 .day-item {
   font-size: 12px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-radius: 8px;
   background: var(--hs-bg);
   color: var(--hs-dark);
@@ -643,21 +695,13 @@ body {
   background: var(--hs-white);
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--hs-orange) 0%, var(--hs-yellow) 100%);
   border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.weekly-progress {
-  height: 4px;
-  background: var(--hs-blue);
-  border-radius: 2px;
-  margin-top: 4px;
   transition: width 0.5s ease;
 }
 
