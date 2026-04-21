@@ -1,172 +1,183 @@
-# Morning App - Planning System
+# Morning — Daily Inspiration & Planning App
 
-## Overview
-This app extends the existing morning routine application with a full planning system including:
-- **Screen 1 (Calm)**: Breathing exercises and daily quote
-- **Screen 2 (Learn)**: Articles and videos
-- **Screen 3 (Today)**: 7-day planning view with tasks, plans, and events
-- **Screen 4 (System)**: Full task/plan management system
+A calm, aesthetic dashboard for breathing exercises, daily inspiration, articles, and task/planning management. Designed with Headspace-inspired soft UI to reduce anxiety and provide a pleasant user experience.
 
-## Navigation
-Use the vertical navigation bar on the left side to switch between screens:
-- 🌅 **Calm** - Breathing & Quote
-- 📚 **Learn** - Articles & Videos  
-- 📅 **Today** - Weekly planning view
-- 🗂️ **System** - Full management
+## Features
 
-## Data Model
+### 🌅 Calm Screen
+- Animated breathing exercise with visual guide
+- Daily rotating philosophical/psychological quotes
+- Soothing animations and minimal design
+
+### 📚 Learn Screen  
+- Curated articles about mental health, productivity, and wellness
+- Beautiful card-based layout with CSS gradients
+- Email signup CTA section
+
+### 📅 Today Screen (7-Day Planning)
+- Horizontal 7-day schedule view
+- Events, task deadlines, and plan deadlines grouped by day
+- Tasks filtered by importance or 7-day deadline window
+- Plans with progress bars and weekly progress overlay
+- "Completed Activity" modal showing last 7/30 days
+
+### 🗂️ System Screen (Full Management)
+- All active tasks not shown on main screen
+- All active plans not shown on main screen
+- Collapsible archive section
+- Add Task/Plan/Event buttons
+- CSV import functionality
+
+## Data Models
 
 ### Task
-```json
+```javascript
 {
-  "id": "t1",
-  "title": "Task title",
-  "deadline": "2025-01-15",
-  "important": true,
-  "tags": ["work", "urgent"],
-  "status": "todo | partial | done",
-  "estimatedTime": 60,
-  "deltaTime": 0
+  id: string,
+  title: string,
+  deadline?: string (YYYY-MM-DD),
+  important: boolean,
+  tags: string[],
+  status: "todo" | "partial" | "done",
+  estimatedTime: number (minutes),
+  deltaTime: number (default 0),
+  completedAt?: string (ISO timestamp)
 }
 ```
 
 ### Plan
-```json
+```javascript
 {
-  "id": "p1",
-  "title": "Plan title",
-  "deadline": "2025-01-20",
-  "important": false,
-  "tags": ["learning"],
-  "steps": [
-    {"title": "Step 1", "done": true, "completedAt": "2025-01-10"},
-    {"title": "Step 2", "done": false}
-  ],
-  "createdAt": "2025-01-01"
+  id: string,
+  title: string,
+  deadline?: string (YYYY-MM-DD),
+  important: boolean,
+  tags: string[],
+  steps: [{ title: string, done: boolean, completedAt?: string }],
+  createdAt: string (ISO timestamp)
 }
 ```
 
 ### Event
-```json
+```javascript
 {
-  "id": "e1",
-  "title": "Event title",
-  "date": "2025-01-15",
-  "recurring": true
+  id: string,
+  title: string,
+  date: string (YYYY-MM-DD),
+  recurring: boolean
 }
 ```
 
+## Archiving Rules
+
+**Tasks are archived when:**
+- `status = "done"` OR
+- `deadline < today`
+
+**Plans are archived when:**
+- All steps completed OR
+- `deadline < today`
+
+## No Duplication Rule
+Items appearing on the Main (Today) screen do NOT appear on the System screen.
+
 ## CSV Import Format
 
-To import data via CSV, use the following format:
+To import tasks and plans via CSV, use the following format:
 
+### CSV Structure
 ```csv
-type,id,title,deadline,date,important,tags,status,estimatedTime,deltaTime,recurring,steps
-task,t1,Complete project proposal,2025-01-16,,true,"work,urgent",todo,90,0,false,
-plan,p1,Learn TypeScript,2025-01-25,,true,"learning,development",,,,false,"Complete basics tutorial✓2025-01-05|Build a small project✓2025-01-08|Study advanced types|Read documentation"
-event,e1,Team meeting,,2025-01-15,,,,,,true,
+type,title,id,deadline,important,tags,status,estimatedTime
+task,Task Title,task-123,2025-04-25,true,work;urgent,todo,90
+plan,Plan Title,plan-456,2025-04-30,false,personal,,0
 ```
 
-### CSV Column Descriptions:
-- **type**: `task`, `plan`, or `event`
-- **id**: Unique identifier (if exists, updates the item; if new, creates it)
-- **title**: Title of the item
-- **deadline**: For tasks/plans (YYYY-MM-DD format)
-- **date**: For events (YYYY-MM-DD format)
-- **important**: `true` or `false`
-- **tags**: Comma-separated list in quotes
-- **status**: `todo`, `partial`, or `done` (tasks only)
-- **estimatedTime**: Minutes (tasks only)
-- **deltaTime**: Time spent in minutes (tasks only)
-- **recurring**: `true` or `false` (events only)
-- **steps**: For plans only. Format: `Step1✓completedAt|Step2|Step3✓completedAt`
-  - Steps are separated by `|`
-  - Completed steps have `✓` followed by completion date
+### Column Definitions
+| Column | Description | Required | Example |
+|--------|-------------|----------|---------|
+| type | `task` or `plan` | Yes | `task` |
+| title | Item title | Yes | `Prepare presentation` |
+| id | Unique identifier | Optional (auto-generated if empty) | `task-123` |
+| deadline | Due date (YYYY-MM-DD) | Optional | `2025-04-25` |
+| important | `true` or `false` | Optional (default: false) | `true` |
+| tags | Semicolon-separated | Optional | `work;urgent;personal` |
+| status | `todo`, `partial`, or `done` | Optional (default: todo) | `todo` |
+| estimatedTime | Minutes (tasks only) | Optional (default: 60) | `90` |
 
-### Example CSV File:
-```csv
-type,id,title,deadline,date,important,tags,status,estimatedTime,deltaTime,recurring,steps
-task,t1,Complete project proposal,2025-01-16,,true,"work,urgent",todo,90,0,false,
-task,t2,Review quarterly reports,2025-01-18,,false,work,partial,60,20,false,
-task,t3,Buy groceries,2025-01-15,,false,personal,todo,30,0,false,
-plan,p1,Learn TypeScript,2025-01-25,,true,"learning,development",,,,false,"Complete basics tutorial✓2025-01-05|Build a small project✓2025-01-08|Study advanced types|Read documentation|Contribute to open source"
-plan,p2,Home renovation,2025-01-20,,false,"personal,home",,,,false,"Choose paint colors✓2025-01-12|Buy materials|Paint living room|Install new fixtures"
-event,e1,Team meeting,,2025-01-15,,,,,,true,
-event,e2,Doctor appointment,,2025-01-16,,,,,,false,
-event,e3,Dinner with friends,,2025-01-18,,,,,,false,
-```
+### Important Notes
+- First row must be header
+- If `id` matches existing item, it updates (preserving progress)
+- If `id` is new, it creates a new item
+- Progress is NOT reset when updating existing items
+- Empty optional fields can be left blank
 
-## AI Prompt for CSV Generation
+---
 
-Use this prompt to ask an AI to generate CSV data for import:
+## Prompt for AI to Generate CSV Data
+
+Use this prompt to ask an AI to prepare CSV data for import:
 
 ```
-Create a CSV file for importing tasks, plans, and events into a planning system.
+Generate a CSV file for importing tasks and plans into a planning application. 
 
 Format requirements:
-- Headers: type,id,title,deadline,date,important,tags,status,estimatedTime,deltaTime,recurring,steps
-- type: "task", "plan", or "event"
-- deadline: YYYY-MM-DD format for tasks/plans
-- date: YYYY-MM-DD format for events
-- tags: comma-separated in quotes like "work,urgent"
-- status: "todo", "partial", or "done" for tasks
-- steps: for plans, format is "Step1✓completedAt|Step2|Step3✓completedAt"
+- Header row: type,title,id,deadline,important,tags,status,estimatedTime
+- type must be "task" or "plan"
+- deadline in YYYY-MM-DD format
+- important is "true" or "false"
+- tags separated by semicolons (e.g., "work;urgent")
+- status is "todo", "partial", or "done"
+- estimatedTime is in minutes (for tasks)
 
-Create realistic sample data for:
-- 5-7 tasks with various deadlines, priorities, and statuses
-- 2-3 plans with multiple steps (some completed, some not)
-- 3-4 events (mix of recurring and one-time)
+Create [NUMBER] realistic items for a [professional/student/personal] context including:
+- Mix of important and regular items
+- Various deadlines within the next 2 weeks
+- Some tasks due soon, some later
+- At least 2 plans with multiple steps implied
+- Diverse tags like work, personal, health, learning, etc.
 
-Include items that would appear on:
-1. Main screen (deadline within 7 days OR important)
-2. System screen only (not urgent, not important)
-3. Archive (completed or expired)
-
-Output ONLY the CSV content, no explanations.
+Output ONLY the CSV content, no explanation.
 ```
 
-## Features
+Example output:
+```csv
+type,title,id,deadline,important,tags,status,estimatedTime
+task,Prepare quarterly report,task-001,2025-04-23,true,work;urgent,todo,120
+task,Schedule dentist appointment,task-002,2025-04-25,false,health,todo,15
+plan,Launch marketing campaign,plan-001,2025-04-30,true,work;marketing,,0
+task,Buy groceries,task-003,2025-04-22,false,personal,todo,45
+```
 
-### Main Screen (Today)
-- Shows schedule grouped by day (today + next 6 days)
-- Displays tasks with deadline within 7 days OR marked important
-- Shows plans with progress bars (total + weekly progress)
-- Clean, minimal design
+---
 
-### Full System Screen
-- Active Tasks: All non-archived tasks not shown on main screen
-- Active Plans: All non-archived plans not shown on main screen
-- Archive: Collapsed section with completed/expired items
-- Add button (+) to create new items
-- CSV import functionality
+## Running the Application
 
-### Editing
-- Click any task/plan card to edit via modal
-- Edit: title, deadline, tags, importance
-- Tasks: also edit estimated time, delta time, status
-- Plans: add/remove/complete steps
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### Archive Rules
-- Task archived when: status = "done" OR deadline passed
-- Plan archived when: all steps done OR deadline passed
-- Items on main screen don't appear in system active lists
+2. Start the server:
+   ```bash
+   node server.js
+   ```
+
+3. Open in browser:
+   ```
+   http://localhost:3000
+   ```
+
+## Tech Stack
+- **Backend:** Node.js + Express
+- **Frontend:** Vanilla JavaScript, HTML5, CSS3
+- **Design:** Headspace-inspired color palette, CSS gradients, no external images
+- **Data:** In-memory state (resets on server restart)
 
 ## Design Principles
-- Headspace-style: warm, soft palette
-- Rounded cards with breathing space
-- Minimal text, soft shadows
-- Low cognitive load, calm interface
-
-## Running the App
-
-1. Start the server:
-```bash
-node server.js
-```
-
-2. Open browser to `http://localhost:3000`
-
-3. Navigate using the left sidebar
-
-## Data Persistence
-Data is stored in localStorage. Mock data is initialized on first load.
+- Warm, soft color palette (not harsh contrasts)
+- Rounded cards with soft shadows
+- Generous padding and spacing
+- Minimal text, clear hierarchy
+- Smooth animations and transitions
+- Reduced cognitive load
+- Anxiety-reducing interface
