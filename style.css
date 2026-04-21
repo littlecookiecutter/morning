@@ -1,0 +1,245 @@
+/* ===== RESET & VARIABLES ===== */
+:root {
+  --hs-bg: #F4F4F2;           /* Тот самый бежевый фон Headspace */
+  --hs-white: #FFFFFF;
+  --hs-orange: #FF5A5F;       /* Яркий оранжевый */
+  --hs-yellow: #FFCC00;       /* Фирменный желтый */
+  --hs-blue: #00A699;         /* Мятно-синий */
+  --hs-dark: #2D3748;         /* Темный текст */
+  --hs-text-grey: #718096;    /* Серый текст */
+  --hs-btn-blue: #2D5BFF;     /* Кнопка Request Demo */
+  
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--hs-bg);
+  color: var(--hs-dark);
+  line-height: 1.5;
+}
+
+/* ===== NAVIGATION (Headspace Style) ===== */
+.navbar {
+  background: var(--hs-white);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--hs-dark);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 24px;
+  background: var(--hs-orange);
+  border-radius: 50%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--hs-dark);
+  font-weight: 600;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--hs-orange);
+}
+
+.btn-demo {
+  background-color: var(--hs-btn-blue);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
+.btn-demo:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== MAIN LAYOUT ===== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+/* ===== HERO SECTION ===== */
+.hero {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.hero h1 {
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  font-size: 20px;
+  color: var(--hs-text-grey);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== CARDS GRID ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 30px;
+  margin-bottom: 80px;
+}
+
+.card {
+  background: var(--hs-white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+/* Имитация картинок через CSS-градиенты */
+.card-image {
+  height: 220px;
+  width: 100%;
+  position: relative;
+}
+
+.gradient-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
+.gradient-2 { background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); }
+.gradient-3 { background: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); }
+.gradient-4 { background: linear-gradient(120deg, #f6d365 0%, #fda085 100%); }
+
+.card-content {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--hs-text-grey);
+  margin-bottom: 12px;
+}
+
+.card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.card p {
+  font-size: 15px;
+  color: var(--hs-text-grey);
+  margin-bottom: 20px;
+  flex: 1; /* Толкает ссылку вниз */
+}
+
+.read-more {
+  color: var(--hs-orange);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.read-more::after {
+  content: '→';
+  transition: transform 0.2s;
+}
+
+.read-more:hover::after {
+  transform: translateX(4px);
+}
+
+/* ===== CTA SECTION (Yellow Block) ===== */
+.cta-section {
+  background: var(--hs-yellow);
+  border-radius: var(--radius-xl);
+  padding: 60px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.cta-section h2 {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.cta-form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  max-width: 500px;
+  margin: 24px auto 0;
+}
+
+.cta-form input {
+  padding: 14px 20px;
+  border-radius: 50px;
+  border: 1px solid #ccc;
+  flex: 1;
+  font-size: 16px;
+}
+
+.cta-form button {
+  background: var(--hs-dark);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 50px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
