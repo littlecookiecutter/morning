@@ -1454,6 +1454,16 @@ async function initLearnScreen() {
 }
 
 // Attach to global scope for HTML buttons to access
+window.fetchArticles = fetchArticles;
+window.loadNews = loadNews;
+window.loadVideos = loadVideo;
+window.showCompletedModal = showCompletedModal;
+window.closeCompletedModal = closeCompletedModal;
+window.showCompletedPeriod = showCompletedPeriod;
+window.openAddModal = openAddModal;
+window.closeModal = closeModal;
+window.toggleArchive = toggleArchive;
+window.importCSV = importCSV;
 window.refreshContent = () => {
   contentLoaded = false;
   newsData = [];
