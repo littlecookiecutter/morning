@@ -1,7 +1,13 @@
 // ===== CONFIGURATION & API KEYS =====
-// Replace these with your actual API keys for production use
-const OPENROUTER_API_KEY = 'YOUR_OPENROUTER_KEY'; // Get from https://openrouter.ai/keys
-const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_KEY'; // Get from https://console.cloud.google.com/
+// These will be populated from server environment variables via window object
+// Expected .env structure on server:
+//   OPENROUTER_API_KEY=sk-or-...
+//   NEWSAPI_KEY=db6...
+//   YOUTUBE_API_KEY=...
+//   PORT=3000
+const OPENROUTER_API_KEY = window.API_KEYS?.OPENROUTER || 'YOUR_OPENROUTER_KEY';
+const NEWS_API_KEY = window.API_KEYS?.NEWS || 'YOUR_NEWS_KEY';
+const YOUTUBE_API_KEY = window.API_KEYS?.YOUTUBE || 'YOUR_YOUTUBE_KEY';
 
 // ===== STATE MANAGEMENT =====
 const state = {
@@ -339,9 +345,9 @@ let allArticles = [];
 async function fetchArticles() {
   try {
     // Check if API key is configured
-    const apiKey = window.NEWS_API_KEY || '';
+    const apiKey = NEWS_API_KEY || '';
     
-    if (!apiKey || apiKey === 'your_news_api_key_here') {
+    if (!apiKey || apiKey === 'YOUR_NEWS_KEY') {
       // Use mock articles if no API key
       console.log('Using mock articles (NEWS_API_KEY not configured)');
       const mockArticles = [
