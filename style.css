@@ -476,7 +476,7 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 12px;
-  min-width: 840px;
+  width: 100%;
 }
 
 .day-card {
@@ -488,6 +488,7 @@ body {
   transition: var(--transition);
   display: flex;
   flex-direction: column;
+  aspect-ratio: 3/4;
 }
 
 .day-card:hover {
@@ -700,7 +701,7 @@ body {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--hs-orange) 0%, var(--hs-yellow) 100%);
+  background: var(--hs-orange);
   border-radius: 4px;
   transition: width 0.5s ease;
 }

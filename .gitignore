@@ -1,4 +1,10 @@
 ```
-# Logs and temp files
+# Logs
 *.log
+
+# Environment
+.env.local
+
+# Editors
+.vscode/
 ```

@@ -317,42 +317,42 @@ async function fetchArticles() {
         excerpt: 'How organizations can support employees in managing work stress and burnout effectively.',
         tag: 'White Paper',
         gradient: 'gradient-1',
-        url: '#'
+        url: 'https://www.headspace.com/work-mental-health'
       },
       {
         title: 'The Workforce State of Mind in 2025',
         excerpt: 'Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.',
         tag: 'Research Report',
         gradient: 'gradient-2',
-        url: '#'
+        url: 'https://www.headspace.com/workplace-wellbeing'
       },
       {
         title: 'Sam Altman on the Future of AI and Creativity',
         excerpt: 'A deep dive into how generative models are reshaping the way we think about human potential.',
         tag: 'Inspiration',
-        gradient: 'gradient-5',
-        url: '#'
+        gradient: 'gradient-3',
+        url: 'https://www.youtube.com/watch?v=example1'
       },
       {
         title: 'Why professional AI coding tools need purpose-built solutions',
         excerpt: 'Moving beyond generic LLMs to create tools that truly understand developer workflows.',
         tag: 'ML Insight',
         gradient: 'gradient-4',
-        url: '#'
+        url: 'https://github.blog/ai-coding-tools'
       },
       {
         title: 'Building Resilience in Uncertain Times',
         excerpt: 'Practical strategies for maintaining mental wellness during periods of change.',
         tag: 'White Paper',
-        gradient: 'gradient-6',
-        url: '#'
+        gradient: 'gradient-1',
+        url: 'https://www.headspace.com/resilience'
       },
       {
         title: 'The Science of Mindful Leadership',
         excerpt: 'How mindfulness practices can transform your approach to management and decision-making.',
         tag: 'Inspiration',
         gradient: 'gradient-3',
-        url: '#'
+        url: 'https://www.nngroup.com/articles/mindful-leadership/'
       }
     ];
     
@@ -384,7 +384,7 @@ function renderArticles() {
         <span class="tag">${article.tag}</span>
         <h3>${article.title}</h3>
         <p>${article.excerpt}</p>
-        <a href="${article.url}" class="read-more" onclick="event.preventDefault(); alert('Opening: ${article.title}')">Read article →</a>
+        <a href="${article.url}" target="_blank" rel="noopener noreferrer" class="read-more">Read article →</a>
       </div>
     </article>
   `).join('');
