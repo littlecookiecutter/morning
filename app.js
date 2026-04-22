@@ -16,6 +16,24 @@ const state = {
 let newsData = [];
 let videoData = [];
 let contentLoaded = false;
+let lastSuccessfulContent = { news: [], video: null }; // Fallback cache
+
+// ===== HELPER FUNCTIONS =====
+function logDebug(msg, data = null) {
+  console.log(`[Content Pipeline] ${msg}`, data || '');
+}
+
+async function checkUrlStatus(url) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, { method: 'HEAD', signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch (e) {
+    return false;
+  }
+}
 
 // ===== MOCK DATA =====
 function initMockData() {
@@ -1131,167 +1149,227 @@ document.addEventListener('DOMContentLoaded', function() {
   navigateTo('calm');
 });
 
-// ===== NEWS LOADING (OpenRouter API) =====
-async function loadNews() {
+// ===== NEWS LOADING (OpenRouter API + Dev.to) =====
+async function fetchRawArticles(topic, count) {
+  const queries = {
+    ml: ['machine learning engineering', 'data pipeline case study', 'MLOps real world', 'recommendation systems architecture'],
+    health: ['medical diagnosis story', 'doctor case report', 'unusual disease diagnosis', 'clinical investigation story']
+  };
+
+  const keywords = topic === 'ml' ? queries.ml : queries.health;
+  const results = [];
+
+  try {
+    const searchTerm = keywords[Math.floor(Math.random() * keywords.length)];
+    const res = await fetch(`https://dev.to/search/feed_content?per_page=${count}&page=1&search_query=${encodeURIComponent(searchTerm)}&search_type=relevance`);
+    if (res.ok) {
+      const data = await res.json();
+      data.forEach(item => {
+        results.push({
+          title: item.title,
+          url: item.url,
+          source: 'Dev.to',
+          topic: topic,
+          published_at: item.published_at
+        });
+      });
+    }
+  } catch (e) {
+    logDebug(`Failed to fetch from Dev.to for ${topic}`, e);
+  }
+
+  return results;
+}
+
+async function summarizeArticle(article) {
   if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === 'YOUR_OPENROUTER_KEY') {
-    console.log('OpenRouter API key not set, using mock news data');
-    newsData = [
-      {
-        title: 'The Future of AI in Daily Productivity',
-        url: 'https://example.com/ai-productivity',
-        summary: 'New AI tools are transforming how we manage our daily tasks, offering personalized recommendations and automating routine workflows.'
-      },
-      {
-        title: 'Mental Health Tech: Breakthroughs in 2025',
-        url: 'https://example.com/mental-health-tech',
-        summary: 'Wearable devices and apps now provide real-time stress monitoring, helping users maintain better work-life balance.'
-      },
-      {
-        title: 'Remote Work Trends: What Changed Forever',
-        url: 'https://example.com/remote-work-trends',
-        summary: 'Companies are adopting hybrid models permanently, with new tools emerging to support distributed team collaboration.'
-      }
-    ];
-    renderNews();
-    return;
+    logDebug('OpenRouter key missing, using placeholder summary');
+    return "Read this insightful article to learn more about " + (article.topic === 'ml' ? 'Machine Learning and Data Engineering' : 'Medical Storytelling and Diagnostics') + ".";
   }
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
+    const prompt = `You are an expert editor. Based on the article title "${article.title}" about ${article.topic === 'ml' ? 'Machine Learning/Data Engineering' : 'Medical Storytelling'}, write a compelling 3-sentence summary focusing on practical insights or the narrative arc. Tone: Professional, engaging, mid-level technical depth. Return ONLY the summary text.`;
+
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": window.location.href,
+        "X-Title": "Morning App"
       },
       body: JSON.stringify({
-        model: 'qwen/qwen-2.5-72b-instruct',
-        messages: [{
-          role: 'user',
-          content: 'Найди 3-5 последних важных новостей из мира технологий и саморазвития. Верни ТОЛЬКО валидный JSON массив объектов: [{"title": "...", "url": "...", "summary": "краткий пересказ в 2 предложениях"}]. Никакого лишнего текста.'
-        }]
+        model: "qwen/qwen-2.5-72b-instruct",
+        messages: [{ role: "user", content: prompt }]
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    let content = data.choices[0].message.content;
-    
-    // Clean up markdown code blocks if present
-    content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-    
-    newsData = JSON.parse(content);
-    renderNews();
-  } catch (error) {
-    console.error('Error loading news:', error);
-    // Fallback to mock data on error
-    newsData = [
-      {
-        title: 'AI Tools Reshape Productivity Landscape',
-        url: 'https://example.com/ai-tools',
-        summary: 'Latest AI assistants are helping professionals manage their time more effectively with smart scheduling.'
-      },
-      {
-        title: 'Wellness Technology Gains Momentum',
-        url: 'https://example.com/wellness-tech',
-        summary: 'New apps combine meditation tracking with productivity metrics for holistic self-improvement.'
-      },
-      {
-        title: 'Future of Work: Hybrid Models Dominate',
-        url: 'https://example.com/future-work',
-        summary: 'Companies report higher satisfaction rates with flexible work arrangements supported by digital tools.'
-      }
-    ];
-    renderNews();
+    if (!res.ok) throw new Error('OpenRouter API error');
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+  } catch (e) {
+    logDebug('Summarization failed', e);
+    return "Failed to generate summary. Please check API key.";
   }
 }
 
-// ===== VIDEO LOADING (YouTube API) =====
-async function loadVideos() {
-  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_KEY') {
-    console.log('YouTube API key not set, using mock video data');
-    videoData = [
-      {
-        title: 'Morning Routine for Maximum Productivity',
-        videoId: 'jfKfPfyJRdk',
-        thumbnail: 'https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
-      },
-      {
-        title: 'The Science of Mindfulness',
-        videoId: 'inpok4MKVLM',
-        thumbnail: 'https://img.youtube.com/vi/inpok4MKVLM/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=inpok4MKVLM'
-      },
-      {
-        title: 'How to Build Better Habits',
-        videoId: 'BJWZrJW3jWI',
-        thumbnail: 'https://img.youtube.com/vi/BJWZrJW3jWI/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=BJWZrJW3jWI'
-      },
-      {
-        title: 'Time Management Techniques That Work',
-        videoId: 'Oj-j5qpTzSw',
-        thumbnail: 'https://img.youtube.com/vi/Oj-j5qpTzSw/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=Oj-j5qpTzSw'
+async function loadNews() {
+  logDebug('Starting article pipeline...');
+  
+  // Fetch Raw Candidates
+  const mlCandidates = await fetchRawArticles('ml', 5);
+  const healthCandidates = await fetchRawArticles('health', 5);
+
+  logDebug('Raw candidates fetched', { ml: mlCandidates.length, health: healthCandidates.length });
+
+  // Validate Links & Select Top 3 per category
+  const validateAndSelect = async (candidates, count) => {
+    const valid = [];
+    for (const candidate of candidates) {
+      if (valid.length >= count) break;
+      if (candidate.title.toLowerCase().includes('clickbait') || candidate.title.includes('$$$')) continue;
+      
+      const isValid = await checkUrlStatus(candidate.url);
+      if (isValid) {
+        valid.push(candidate);
+      } else {
+        logDebug(`Discarded broken link: ${candidate.url}`);
       }
-    ];
+    }
+    return valid;
+  };
+
+  const mlSelected = await validateAndSelect(mlCandidates, 3);
+  const healthSelected = await validateAndSelect(healthCandidates, 3);
+
+  // Fallback if live fetch yields too few results
+  const ensureCount = (list, topic, target) => {
+    if (list.length >= target) return list;
+    const mocks = topic === 'ml' 
+      ? [
+          { title: "Building Real-Time Data Pipelines at Scale", url: "https://medium.com/data-engineering-collective", topic: 'ml' },
+          { title: "How Recommendation Systems Actually Work", url: "https://towardsdatascience.com/", topic: 'ml' },
+          { title: "MLOps: From Model to Production", url: "https://ml-ops.org/", topic: 'ml' }
+        ]
+      : [
+          { title: "The Diagnostic Puzzle: A Case Study", url: "https://www.nejm.org/", topic: 'health' },
+          { title: "Unraveling a Rare Disease: Doctor's Log", url: "https://www.statnews.com/", topic: 'health' },
+          { title: "Inside the ER: A Night of Mysteries", url: "https://www.medscape.com/", topic: 'health' }
+        ];
+    
+    for (const mock of mocks) {
+      if (list.length >= target) break;
+      if (!list.some(i => i.title === mock.title)) {
+        list.push({ ...mock, source: 'Archive' });
+      }
+    }
+    return list;
+  };
+
+  const finalMl = ensureCount(mlSelected, 'ml', 3);
+  const finalHealth = ensureCount(healthSelected, 'health', 3);
+
+  // Summarize
+  logDebug('Summarizing articles...');
+  const processArticles = async (list) => {
+    return Promise.all(list.map(async (art) => {
+      const summary = await summarizeArticle(art);
+      return { ...art, summary };
+    }));
+  };
+
+  const processedMl = await processArticles(finalMl);
+  const processedHealth = await processArticles(finalHealth);
+
+  newsData = [...processedMl, ...processedHealth];
+  lastSuccessfulContent.news = newsData;
+  
+  logDebug('Article pipeline complete', { count: newsData.length });
+  renderNews();
+}
+
+// ===== VIDEO LOADING (YouTube API) =====
+async function loadVideo() {
+  logDebug('Starting video pipeline...');
+  
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_KEY') {
+    logDebug('YouTube API key missing. Using fallback video.');
+    const fallback = {
+      title: "A Day in the Life of a Data Engineer",
+      videoId: "O7Jy6zG6uYw",
+      thumbnail: "https://img.youtube.com/vi/O7Jy6zG6uYw/mqdefault.jpg"
+    };
+    videoData = [fallback];
+    lastSuccessfulContent.video = fallback;
     renderVideos();
     return;
   }
 
+  const queries = [
+    "day in the life data engineer",
+    "my journey becoming a software developer",
+    "startup founder story documentary",
+    "creative career path story"
+  ];
+  
+  const query = queries[Math.floor(Math.random() * queries.length)];
+
   try {
-    const searchQuery = 'technology self development';
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=date&maxResults=4&q=${encodeURIComponent(searchQuery)}&key=${YOUTUBE_API_KEY}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=28&q=${encodeURIComponent(query)}&order=relevance&maxResults=5&key=${YOUTUBE_API_KEY}`;
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`YouTube API error: ${response.status}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('YouTube API error');
+    
+    const data = await res.json();
+    const items = data.items || [];
+
+    let selected = null;
+    
+    for (const item of items) {
+      const title = item.snippet.title.toLowerCase();
+      if (title.includes('music') || title.includes('trailer') || title.includes('shorts')) continue;
+      
+      if (title.includes('day in the life') || title.includes('story') || title.includes('journey') || title.includes('how i became')) {
+        selected = {
+          title: item.snippet.title,
+          videoId: item.id.videoId,
+          thumbnail: item.snippet.thumbnails.medium.url
+        };
+        break;
+      }
     }
 
-    const data = await response.json();
-    
-    videoData = data.items.map(item => ({
-      title: item.snippet.title,
-      videoId: item.id.videoId,
-      thumbnail: item.snippet.thumbnails.medium.url,
-      url: `https://www.youtube.com/watch?v=${item.id.videoId}`
-    }));
-    
-    renderVideos();
-  } catch (error) {
-    console.error('Error loading videos:', error);
-    // Fallback to mock data on error
-    videoData = [
-      {
-        title: 'Productivity Tips from Experts',
-        videoId: 'jfKfPfyJRdk',
-        thumbnail: 'https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
-      },
-      {
-        title: 'Mindfulness for Beginners',
-        videoId: 'inpok4MKVLM',
-        thumbnail: 'https://img.youtube.com/vi/inpok4MKVLM/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=inpok4MKVLM'
-      },
-      {
-        title: 'Building Atomic Habits',
-        videoId: 'BJWZrJW3jWI',
-        thumbnail: 'https://img.youtube.com/vi/BJWZrJW3jWI/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=BJWZrJW3jWI'
-      },
-      {
-        title: 'Master Your Time',
-        videoId: 'Oj-j5qpTzSw',
-        thumbnail: 'https://img.youtube.com/vi/Oj-j5qpTzSw/mqdefault.jpg',
-        url: 'https://www.youtube.com/watch?v=Oj-j5qpTzSw'
-      }
-    ];
-    renderVideos();
+    if (!selected && items.length > 0) {
+      const first = items[0];
+      selected = {
+        title: first.snippet.title,
+        videoId: first.id.videoId,
+        thumbnail: first.snippet.thumbnails.medium.url
+      };
+    }
+
+    if (selected) {
+      videoData = [selected];
+      lastSuccessfulContent.video = selected;
+      logDebug('Video found', selected.title);
+    } else {
+      throw new Error('No suitable video found');
+    }
+
+  } catch (e) {
+    logDebug('Video fetch failed, using cache', e);
+    if (lastSuccessfulContent.video) {
+      videoData = [lastSuccessfulContent.video];
+    } else {
+      videoData = [{
+        title: "Inspiring Career Stories",
+        videoId: "Kx8Js8vJjZw",
+        thumbnail: "https://img.youtube.com/vi/Kx8Js8vJjZw/mqdefault.jpg"
+      }];
+    }
   }
+
+  renderVideos();
 }
 
 // ===== RENDER NEWS =====
@@ -1302,19 +1380,23 @@ function renderNews() {
   container.innerHTML = '';
   
   if (newsData.length === 0) {
-    container.innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);">Loading news...</p>';
+    container.innerHTML = '<div class="loading-card">Loading high-quality articles...</div>';
     return;
   }
-  
-  newsData.forEach((news, index) => {
+
+  newsData.forEach((item, index) => {
     const card = document.createElement('article');
-    card.className = 'card news-card';
+    card.className = 'news-card';
+    
+    const gradientClass = item.topic === 'ml' ? 'gradient-ml' : 'gradient-health';
+    
     card.innerHTML = `
+      <div class="card-image ${gradientClass}"></div>
       <div class="card-content">
-        <span class="tag">News</span>
-        <h3>${escapeHtml(news.title)}</h3>
-        <p>${escapeHtml(news.summary)}</p>
-        <a href="${news.url}" target="_blank" rel="noopener noreferrer" class="read-more">Read article →</a>
+        <span class="tag">${item.topic === 'ml' ? 'ML / Data Eng' : 'Medical Story'}</span>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.summary)}</p>
+        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="read-more">Read article →</a>
       </div>
     `;
     container.appendChild(card);
@@ -1325,35 +1407,54 @@ function renderNews() {
 function renderVideos() {
   const container = document.getElementById('video-container');
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   if (videoData.length === 0) {
-    container.innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);">Loading videos...</p>';
+    container.innerHTML = '<div class="loading-card">Finding inspiring stories...</div>';
     return;
   }
+
+  const video = videoData[0];
+  const card = document.createElement('div');
+  card.className = 'video-card';
   
-  videoData.forEach((video, index) => {
-    const card = document.createElement('article');
-    card.className = 'card video-card';
-    card.innerHTML = `
-      <div class="video-thumbnail">
-        <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}">
-        <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="play-button">▶</a>
-      </div>
-      <div class="card-content">
-        <span class="tag">Video</span>
-        <h3>${escapeHtml(video.title)}</h3>
-        <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="read-more">Watch video →</a>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  card.innerHTML = `
+    <div class="video-thumbnail" style="background-image: url('${video.thumbnail}')">
+      <div class="play-button">▶</div>
+    </div>
+    <div class="video-info">
+      <h3>${escapeHtml(video.title)}</h3>
+      <a href="https://www.youtube.com/watch?v=${video.videoId}" target="_blank" rel="noopener noreferrer" class="btn-watch">Watch on YouTube</a>
+    </div>
+  `;
+  
+  container.appendChild(card);
 }
 
-// ===== HELPER: ESCAPE HTML =====
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// ===== INITIALIZATION =====
+async function initLearnScreen() {
+  if (contentLoaded) return;
+  
+  logDebug('Initializing Learn Screen...');
+  
+  await Promise.all([
+    loadNews(),
+    loadVideo()
+  ]);
+  
+  contentLoaded = true;
+  logDebug('Learn Screen initialization complete');
 }
+
+// Attach to global scope for HTML buttons to access
+window.refreshContent = () => {
+  contentLoaded = false;
+  newsData = [];
+  videoData = [];
+  const newsContainer = document.getElementById('news-container');
+  const videoContainer = document.getElementById('video-container');
+  if (newsContainer) newsContainer.innerHTML = '<div class="loading-card">Refreshing content...</div>';
+  if (videoContainer) videoContainer.innerHTML = '<div class="loading-card">Finding new video...</div>';
+  initLearnScreen();
+};

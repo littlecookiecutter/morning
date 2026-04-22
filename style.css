@@ -1223,3 +1223,50 @@ body {
 .video-card .read-more:hover::after {
   transform: translateX(4px);
 }
+
+/* Article gradients for ML and Health topics */
+.gradient-ml {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-health {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Loading state */
+.loading-card {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--hs-text-grey);
+  font-size: 16px;
+}
+
+/* Video info section */
+.video-info {
+  padding: 24px;
+}
+
+.video-info h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.4;
+  color: var(--hs-dark);
+}
+
+.btn-watch {
+  display: inline-block;
+  background: var(--hs-orange);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-watch:hover {
+  transform: translateY(-2px);
+  background: #ff4752;
+}

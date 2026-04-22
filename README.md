@@ -1,183 +1,95 @@
-# Morning — Daily Inspiration & Planning App
+# Morning - Personal Planning & Inspiration System
 
-A calm, aesthetic dashboard for breathing exercises, daily inspiration, articles, and task/planning management. Designed with Headspace-inspired soft UI to reduce anxiety and provide a pleasant user experience.
+A calm, aesthetic dashboard for daily planning, breathing exercises, and curated learning content. Designed to reduce anxiety and increase focus.
 
-## Features
+## 🚀 Quick Start
 
-### 🌅 Calm Screen
-- Animated breathing exercise with visual guide
-- Daily rotating philosophical/psychological quotes
-- Soothing animations and minimal design
+### Prerequisites
+Ensure you have the following installed on your computer:
+1.  **Node.js** (version 14 or higher) - [Download here](https://nodejs.org/)
+2.  **npm** (comes with Node.js)
 
-### 📚 Learn Screen  
-- Curated articles about mental health, productivity, and wellness
-- Beautiful card-based layout with CSS gradients
-- Email signup CTA section
-
-### 📅 Today Screen (7-Day Planning)
-- Horizontal 7-day schedule view
-- Events, task deadlines, and plan deadlines grouped by day
-- Tasks filtered by importance or 7-day deadline window
-- Plans with progress bars and weekly progress overlay
-- "Completed Activity" modal showing last 7/30 days
-
-### 🗂️ System Screen (Full Management)
-- All active tasks not shown on main screen
-- All active plans not shown on main screen
-- Collapsible archive section
-- Add Task/Plan/Event buttons
-- CSV import functionality
-
-## Data Models
-
-### Task
-```javascript
-{
-  id: string,
-  title: string,
-  deadline?: string (YYYY-MM-DD),
-  important: boolean,
-  tags: string[],
-  status: "todo" | "partial" | "done",
-  estimatedTime: number (minutes),
-  deltaTime: number (default 0),
-  completedAt?: string (ISO timestamp)
-}
-```
-
-### Plan
-```javascript
-{
-  id: string,
-  title: string,
-  deadline?: string (YYYY-MM-DD),
-  important: boolean,
-  tags: string[],
-  steps: [{ title: string, done: boolean, completedAt?: string }],
-  createdAt: string (ISO timestamp)
-}
-```
-
-### Event
-```javascript
-{
-  id: string,
-  title: string,
-  date: string (YYYY-MM-DD),
-  recurring: boolean
-}
-```
-
-## Archiving Rules
-
-**Tasks are archived when:**
-- `status = "done"` OR
-- `deadline < today`
-
-**Plans are archived when:**
-- All steps completed OR
-- `deadline < today`
-
-## No Duplication Rule
-Items appearing on the Main (Today) screen do NOT appear on the System screen.
-
-## CSV Import Format
-
-To import tasks and plans via CSV, use the following format:
-
-### CSV Structure
-```csv
-type,title,id,deadline,important,tags,status,estimatedTime
-task,Task Title,task-123,2025-04-25,true,work;urgent,todo,90
-plan,Plan Title,plan-456,2025-04-30,false,personal,,0
-```
-
-### Column Definitions
-| Column | Description | Required | Example |
-|--------|-------------|----------|---------|
-| type | `task` or `plan` | Yes | `task` |
-| title | Item title | Yes | `Prepare presentation` |
-| id | Unique identifier | Optional (auto-generated if empty) | `task-123` |
-| deadline | Due date (YYYY-MM-DD) | Optional | `2025-04-25` |
-| important | `true` or `false` | Optional (default: false) | `true` |
-| tags | Semicolon-separated | Optional | `work;urgent;personal` |
-| status | `todo`, `partial`, or `done` | Optional (default: todo) | `todo` |
-| estimatedTime | Minutes (tasks only) | Optional (default: 60) | `90` |
-
-### Important Notes
-- First row must be header
-- If `id` matches existing item, it updates (preserving progress)
-- If `id` is new, it creates a new item
-- Progress is NOT reset when updating existing items
-- Empty optional fields can be left blank
+### Installation & Run
+1.  Open your terminal in the project folder.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  (Optional) Set up API keys in `app.js` for real-time news/video (see "Configuration" below). If skipped, the app uses high-quality fallback content.
+4.  Start the server:
+    ```bash
+    node server.js
+    ```
+5.  Open your browser and go to: `http://localhost:3000`
 
 ---
 
-## Prompt for AI to Generate CSV Data
+## 📥 Data Import (CSV)
 
-Use this prompt to ask an AI to prepare CSV data for import:
+You can import your Tasks, Plans, and Events using a **single CSV file**. The system automatically detects the type of entry based on the columns provided.
 
-```
-Generate a CSV file for importing tasks and plans into a planning application. 
+### How to generate your CSV using AI
+You don't need to format the CSV manually. Just copy one of the prompts below, paste it into ChatGPT/Claude/any AI, and describe your tasks in free text. The AI will generate the ready-to-import CSV code for you.
 
-Format requirements:
-- Header row: type,title,id,deadline,important,tags,status,estimatedTime
-- type must be "task" or "plan"
-- deadline in YYYY-MM-DD format
-- important is "true" or "false"
-- tags separated by semicolons (e.g., "work;urgent")
-- status is "todo", "partial", or "done"
-- estimatedTime is in minutes (for tasks)
+#### Option 1: Simple Prompt (Recommended)
+> "I want to import my tasks, plans, and events into my planning app. Here is my raw data in free text:
+>
+> **[PASTE YOUR NOTES HERE: e.g., 'I need to finish the report by Friday, it's important. I have a plan to learn Python with steps: basics, loops, projects. I have a dentist appointment on Monday at 10am.']**
+>
+> Please convert this into a single CSV block with the following headers: `id,title,type,deadline,important,tags,status,estimatedTime,steps,date,recurring`.
+> Rules:
+> 1. For **Tasks**: Fill `title`, `deadline` (YYYY-MM-DD), `important` (true/false), `status` (todo/done), `estimatedTime` (minutes). Leave `steps` empty.
+> 2. For **Plans**: Fill `title`, `steps` (format: 'Step 1|Step 2|Step 3'), `deadline`. Leave `estimatedTime` empty.
+> 3. For **Events**: Fill `title`, `date` (YYYY-MM-DD HH:mm), `recurring` (true/false).
+> 4. Generate unique IDs for each row.
+> 5. Output ONLY the CSV code block."
 
-Create [NUMBER] realistic items for a [professional/student/personal] context including:
-- Mix of important and regular items
-- Various deadlines within the next 2 weeks
-- Some tasks due soon, some later
-- At least 2 plans with multiple steps implied
-- Diverse tags like work, personal, health, learning, etc.
+#### Option 2: Detailed Prompt (For complex structures)
+> "Act as a data formatter. Convert the following unstructured list of goals and appointments into a valid CSV for a productivity app.
+>
+> **My Data:**
+> **[PASTE YOUR NOTES HERE]**
+>
+> **CSV Schema Requirements:**
+> - `id`: Unique string (e.g., t-1, p-1, e-1)
+> - `type`: Infer from context ('task', 'plan', 'event')
+> - `title`: Clear short title
+> - `deadline`: Date string (YYYY-MM-DD) for tasks/plans
+> - `important`: 'true' or 'false'
+> - `tags`: Comma-separated list inside quotes (e.g., "work,urgent")
+> - `status`: 'todo', 'partial', or 'done' (for tasks)
+> - `estimatedTime`: Number in minutes (for tasks only)
+> - `steps`: Pipe-separated list for plans only (e.g., "Research|Draft|Review")
+> - `date`: Specific datetime for events (YYYY-MM-DD HH:mm)
+> - `recurring`: 'true' or 'false' (for events)
+>
+> Return only the CSV code block."
 
-Output ONLY the CSV content, no explanation.
-```
-
-Example output:
-```csv
-type,title,id,deadline,important,tags,status,estimatedTime
-task,Prepare quarterly report,task-001,2025-04-23,true,work;urgent,todo,120
-task,Schedule dentist appointment,task-002,2025-04-25,false,health,todo,15
-plan,Launch marketing campaign,plan-001,2025-04-30,true,work;marketing,,0
-task,Buy groceries,task-003,2025-04-22,false,personal,todo,45
-```
+### How to Import
+1.  Copy the CSV code generated by the AI.
+2.  Save it as `data.csv` (or any name).
+3.  In the app, go to the **System** screen.
+4.  Click the **Import CSV** button and select your file.
+5.  The app will merge the data without deleting your existing progress.
 
 ---
 
-## Running the Application
+## 🎨 Features
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+*   **Calm Screen:** Breathing exercises and daily quotes.
+*   **Learn Screen:** Curated articles (ML & Health) and insightful videos.
+*   **Today Screen:** 7-day planning view with smart filtering.
+*   **System Screen:** Full task management, archive, and CSV import.
 
-2. Start the server:
-   ```bash
-   node server.js
-   ```
+## ⚙️ Configuration (Optional)
 
-3. Open in browser:
-   ```
-   http://localhost:3000
-   ```
+To fetch real-time news and videos, edit `app.js` and add your API keys:
+*   `OPENROUTER_API_KEY`: For AI article summarization.
+*   `YOUTUBE_API_KEY`: For video recommendations.
 
-## Tech Stack
-- **Backend:** Node.js + Express
-- **Frontend:** Vanilla JavaScript, HTML5, CSS3
-- **Design:** Headspace-inspired color palette, CSS gradients, no external images
-- **Data:** In-memory state (resets on server restart)
+If not provided, the app loads premium fallback content automatically.
 
-## Design Principles
-- Warm, soft color palette (not harsh contrasts)
-- Rounded cards with soft shadows
-- Generous padding and spacing
-- Minimal text, clear hierarchy
-- Smooth animations and transitions
-- Reduced cognitive load
-- Anxiety-reducing interface
+## 🛠 Tech Stack
+*   **Backend:** Node.js, Express
+*   **Frontend:** Vanilla JS, HTML5, CSS3 (Headspace-inspired design)
+*   **Data:** In-memory store with CSV persistence
