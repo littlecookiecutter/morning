@@ -15,62 +15,89 @@ Ensure you have the following installed on your computer:
     ```bash
     npm install
     ```
-3.  (Optional) Set up API keys in `app.js` for real-time news/video (see "Configuration" below). If skipped, the app uses high-quality fallback content.
+3.  Create a `.env` file in the project root with your API keys (optional):
+    ```
+    OPENROUTER_API_KEY=sk-or-...
+    NEWSAPI_KEY=...
+    YOUTUBE_API_KEY=...
+    PORT=3000
+    ```
 4.  Start the server:
     ```bash
     node server.js
     ```
 5.  Open your browser and go to: `http://localhost:3000`
 
+The terminal will show which APIs are connected and which are using fallback mode.
+
 ---
 
-## 📥 Data Import (CSV)
+## 🤖 AI Prompts for CSV Generation
 
-You can import your Tasks, Plans, and Events using a **single CSV file**. The system automatically detects the type of entry based on the columns provided.
+You don't need to format CSV files manually. Just copy one of the prompts below, paste it into ChatGPT/Claude/any AI, and describe your tasks in free text. The AI will generate the ready-to-import CSV code for you.
 
-### How to generate your CSV using AI
-You don't need to format the CSV manually. Just copy one of the prompts below, paste it into ChatGPT/Claude/any AI, and describe your tasks in free text. The AI will generate the ready-to-import CSV code for you.
+### Option 1: Simple Prompt (Recommended)
+```
+I want to import my tasks, plans, and events into my planning app. Here is my raw data in free text:
 
-#### Option 1: Simple Prompt (Recommended)
-> "I want to import my tasks, plans, and events into my planning app. Here is my raw data in free text:
->
-> **[PASTE YOUR NOTES HERE: e.g., 'I need to finish the report by Friday, it's important. I have a plan to learn Python with steps: basics, loops, projects. I have a dentist appointment on Monday at 10am.']**
->
-> Please convert this into a single CSV block with the following headers: `id,title,type,deadline,important,tags,status,estimatedTime,steps,date,recurring`.
-> Rules:
-> 1. For **Tasks**: Fill `title`, `deadline` (YYYY-MM-DD), `important` (true/false), `status` (todo/done), `estimatedTime` (minutes). Leave `steps` empty.
-> 2. For **Plans**: Fill `title`, `steps` (format: 'Step 1|Step 2|Step 3'), `deadline`. Leave `estimatedTime` empty.
-> 3. For **Events**: Fill `title`, `date` (YYYY-MM-DD HH:mm), `recurring` (true/false).
-> 4. Generate unique IDs for each row.
-> 5. Output ONLY the CSV code block."
+**[PASTE YOUR NOTES HERE: e.g., 'I need to finish the report by Friday, it's important. I have a plan to learn Python with steps: basics, loops, projects. I have a dentist appointment on Monday at 10am.']**
 
-#### Option 2: Detailed Prompt (For complex structures)
-> "Act as a data formatter. Convert the following unstructured list of goals and appointments into a valid CSV for a productivity app.
->
-> **My Data:**
-> **[PASTE YOUR NOTES HERE]**
->
-> **CSV Schema Requirements:**
-> - `id`: Unique string (e.g., t-1, p-1, e-1)
-> - `type`: Infer from context ('task', 'plan', 'event')
-> - `title`: Clear short title
-> - `deadline`: Date string (YYYY-MM-DD) for tasks/plans
-> - `important`: 'true' or 'false'
-> - `tags`: Comma-separated list inside quotes (e.g., "work,urgent")
-> - `status`: 'todo', 'partial', or 'done' (for tasks)
-> - `estimatedTime`: Number in minutes (for tasks only)
-> - `steps`: Pipe-separated list for plans only (e.g., "Research|Draft|Review")
-> - `date`: Specific datetime for events (YYYY-MM-DD HH:mm)
-> - `recurring`: 'true' or 'false' (for events)
->
-> Return only the CSV code block."
+Please convert this into a single CSV block with the following headers: `id,title,type,deadline,important,tags,status,estimatedTime,steps,date,recurring`.
+Rules:
+1. For **Tasks**: Fill `title`, `deadline` (YYYY-MM-DD), `important` (true/false), `status` (todo/done), `estimatedTime` (minutes). Leave `steps` empty.
+2. For **Plans**: Fill `title`, `steps` (format: 'Step 1|Step 2|Step 3'), `deadline`. Leave `estimatedTime` empty.
+3. For **Events**: Fill `title`, `date` (YYYY-MM-DD HH:mm), `recurring` (true/false).
+4. Generate unique IDs for each row (e.g., t-1, p-1, e-1).
+5. Output ONLY the CSV code block.
+```
 
-### How to Import
+### Option 2: Detailed Prompt (For complex structures)
+```
+Act as a data formatter. Convert the following unstructured list of goals and appointments into a valid CSV for a productivity app.
+
+**My Data:**
+**[PASTE YOUR NOTES HERE]**
+
+**CSV Schema Requirements:**
+- `id`: Unique string (e.g., t-1, p-1, e-1)
+- `type`: Infer from context ('task', 'plan', 'event')
+- `title`: Clear short title
+- `deadline`: Date string (YYYY-MM-DD) for tasks/plans
+- `important`: 'true' or 'false'
+- `tags`: Comma-separated list inside quotes (e.g., "work,urgent")
+- `status`: 'todo', 'partial', or 'done' (for tasks)
+- `estimatedTime`: Number in minutes (for tasks only)
+- `steps`: Pipe-separated list for plans only (e.g., "Research|Draft|Review")
+- `date`: Specific datetime for events (YYYY-MM-DD HH:mm)
+- `recurring`: 'true' or 'false' (for events)
+
+Return only the CSV code block.
+```
+
+### Example Input → Output
+
+**Your free-form description:**
+> "I need to prepare a presentation for next Tuesday, it's urgent and will take about 2 hours. I also want to start a fitness plan with these steps: buy equipment, create schedule, track progress. Oh, and I have a team meeting every Monday at 9am."
+
+**AI will generate this CSV:**
+```csv
+id,title,type,deadline,important,tags,status,estimatedTime,steps,date,recurring
+t-1,Prepare presentation,task,2025-01-21,true,"work,urgent",todo,120,,,
+p-1,Fitness plan,plan,2025-02-01,false,health,partial,,"Buy equipment|Create schedule|Track progress",,
+e-1,Team meeting,event,,,false,"work,recurring",,,,2025-01-20 09:00,true
+```
+
+---
+
+## 📥 How to Import CSV
+
 1.  Copy the CSV code generated by the AI.
 2.  Save it as `data.csv` (or any name).
 3.  In the app, go to the **System** screen.
 4.  Click the **Import CSV** button and select your file.
 5.  The app will merge the data without deleting your existing progress.
+
+**Note:** All three entity types (Tasks, Plans, Events) can be imported from a **single CSV file**. The system automatically detects the type based on the `type` column.
 
 ---
 
@@ -83,11 +110,18 @@ You don't need to format the CSV manually. Just copy one of the prompts below, p
 
 ## ⚙️ Configuration (Optional)
 
-To fetch real-time news and videos, edit `app.js` and add your API keys:
-*   `OPENROUTER_API_KEY`: For AI article summarization.
-*   `YOUTUBE_API_KEY`: For video recommendations.
+To fetch real-time news and videos, create a `.env` file in the project root:
 
-If not provided, the app loads premium fallback content automatically.
+```
+OPENROUTER_API_KEY=sk-or-...
+NEWSAPI_KEY=...
+YOUTUBE_API_KEY=...
+PORT=3000
+```
+
+When you start the server, it will show which APIs are connected:
+- ✅ Connected → Using live API data
+- ❌ Not configured → Using high-quality fallback content
 
 ## 🛠 Tech Stack
 *   **Backend:** Node.js, Express
