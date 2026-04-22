@@ -15,8 +15,8 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || '';
 
 // Track if APIs are available
 const apiStatus = {
-  openrouter: !!OPENROUTER_API_KEY && !OPENROUTER_API_KEY.includes('sk-or-') && OPENROUTER_API_KEY.length > 10,
-  newsapi: !!NEWSAPI_KEY && !NEWSAPI_KEY.includes('db6') && NEWSAPI_KEY.length > 5,
+  openrouter: !!OPENROUTER_API_KEY && OPENROUTER_API_KEY.length > 10,
+  newsapi: !!NEWSAPI_KEY && NEWSAPI_KEY.length > 5,
   youtube: !!YOUTUBE_API_KEY && YOUTUBE_API_KEY.length > 10
 };
 
@@ -25,8 +25,7 @@ app.use(express.static(path.join(__dirname)));
 
 app.get('/', (req, res) => {
   // Pass API keys status to frontend
-  const htmlContent = `
-<!DOCTYPE html>
+  const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -42,8 +41,7 @@ app.get('/', (req, res) => {
     window.API_STATUS = ${JSON.stringify(apiStatus)};
   </script>
 </head>
-<body>
-`;
+<body>`;
   
   // Read the rest of index.html and append
   const fs = require('fs');
