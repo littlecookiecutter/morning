@@ -1080,3 +1080,146 @@ body {
     flex: 1;
   }
 }
+
+/* ===== LEARN SCREEN STYLES ===== */
+.learn-section {
+  margin-bottom: 48px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--hs-dark);
+}
+
+.btn-refresh {
+  background: var(--hs-white);
+  border: 1px solid var(--hs-text-light);
+  color: var(--hs-text-grey);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: var(--transition);
+}
+
+.btn-refresh:hover {
+  background: var(--hs-orange);
+  color: var(--hs-white);
+  border-color: var(--hs-orange);
+  transform: rotate(90deg);
+}
+
+/* Video Card Styles */
+.video-card {
+  background: var(--hs-white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.video-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.video-thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.video-card:hover .video-thumbnail img {
+  transform: scale(1.05);
+}
+
+.play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--hs-white);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.video-card:hover .play-button {
+  background: var(--hs-orange);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.news-card .card-content {
+  padding: 20px 24px;
+}
+
+.video-card .card-content {
+  padding: 16px 20px;
+}
+
+.video-card .tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--hs-blue);
+  background: var(--hs-blue-soft);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.video-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  color: var(--hs-dark);
+}
+
+.video-card .read-more {
+  color: var(--hs-orange);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-card .read-more::after {
+  content: '→';
+  transition: var(--transition);
+}
+
+.video-card .read-more:hover::after {
+  transform: translateX(4px);
+}
