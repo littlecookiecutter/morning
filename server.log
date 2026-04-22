@@ -1,1 +1,7 @@
-Server is running at http://localhost:3000
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+✅ Loaded curated quotes library.
+🚀 Server running at http://localhost:3000
+📖 Open http://localhost:3000 in your browser.
+⏳ Generating morning content...
+📰 ML: Real | 🏥 Health: Demo | 🎬 Video: Demo
+🔄 Refreshing content...
