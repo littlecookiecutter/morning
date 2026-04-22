@@ -48,17 +48,31 @@
         <p>Curated insights for your morning routine. Mental health, productivity, and inspiration.</p>
       </div>
       
+      <!-- Filter buttons -->
+      <div class="filter-container" id="article-filters">
+        <button class="filter-btn active" data-category="all">All</button>
+        <button class="filter-btn" data-category="White Paper">White Papers</button>
+        <button class="filter-btn" data-category="Research Report">Research</button>
+        <button class="filter-btn" data-category="Inspiration">Inspiration</button>
+        <button class="filter-btn" data-category="ML Insight">ML Insight</button>
+      </div>
+      
       <div class="grid" id="articles-grid">
-        <!-- Articles will be loaded here -->
+        <!-- Articles will be loaded here dynamically -->
       </div>
       
       <div class="cta-section">
-        <h2>Don't miss a thing</h2>
-        <p>Additional copy line for the email sign up.</p>
-        <form class="cta-form" onsubmit="event.preventDefault(); alert('Thank you!');">
-          <input type="email" placeholder="Your email address" required>
-          <button type="submit">Sign up</button>
-        </form>
+        <h2>Daily Insight</h2>
+        <p>A short video to inspire your day.</p>
+        <div class="video-container">
+          <iframe 
+            src="https://www.youtube.com/embed/inpok4MKVLM" 
+            title="Mindfulness Video" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
       </div>
     </section>
 
