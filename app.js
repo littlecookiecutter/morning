@@ -1,3 +1,8 @@
+// ===== CONFIGURATION & API KEYS =====
+// Replace these with your actual API keys for production use
+const OPENROUTER_API_KEY = 'YOUR_OPENROUTER_KEY'; // Get from https://openrouter.ai/keys
+const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_KEY'; // Get from https://console.cloud.google.com/
+
 // ===== STATE MANAGEMENT =====
 const state = {
   tasks: [],
@@ -6,6 +11,11 @@ const state = {
   currentScreen: 'calm',
   breathingPhase: 'in'
 };
+
+// ===== NEWS & VIDEO DATA =====
+let newsData = [];
+let videoData = [];
+let contentLoaded = false;
 
 // ===== MOCK DATA =====
 function initMockData() {
@@ -1105,6 +1115,10 @@ document.addEventListener('DOMContentLoaded', function() {
   fetchArticles();
   setupArticleFilters();
   
+  // Load news and videos for Learn screen
+  loadNews();
+  loadVideos();
+  
   // Setup navigation
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', function(e) {
@@ -1116,3 +1130,230 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initial render
   navigateTo('calm');
 });
+
+// ===== NEWS LOADING (OpenRouter API) =====
+async function loadNews() {
+  if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === 'YOUR_OPENROUTER_KEY') {
+    console.log('OpenRouter API key not set, using mock news data');
+    newsData = [
+      {
+        title: 'The Future of AI in Daily Productivity',
+        url: 'https://example.com/ai-productivity',
+        summary: 'New AI tools are transforming how we manage our daily tasks, offering personalized recommendations and automating routine workflows.'
+      },
+      {
+        title: 'Mental Health Tech: Breakthroughs in 2025',
+        url: 'https://example.com/mental-health-tech',
+        summary: 'Wearable devices and apps now provide real-time stress monitoring, helping users maintain better work-life balance.'
+      },
+      {
+        title: 'Remote Work Trends: What Changed Forever',
+        url: 'https://example.com/remote-work-trends',
+        summary: 'Companies are adopting hybrid models permanently, with new tools emerging to support distributed team collaboration.'
+      }
+    ];
+    renderNews();
+    return;
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'qwen/qwen-2.5-72b-instruct',
+        messages: [{
+          role: 'user',
+          content: 'Найди 3-5 последних важных новостей из мира технологий и саморазвития. Верни ТОЛЬКО валидный JSON массив объектов: [{"title": "...", "url": "...", "summary": "краткий пересказ в 2 предложениях"}]. Никакого лишнего текста.'
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    let content = data.choices[0].message.content;
+    
+    // Clean up markdown code blocks if present
+    content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    newsData = JSON.parse(content);
+    renderNews();
+  } catch (error) {
+    console.error('Error loading news:', error);
+    // Fallback to mock data on error
+    newsData = [
+      {
+        title: 'AI Tools Reshape Productivity Landscape',
+        url: 'https://example.com/ai-tools',
+        summary: 'Latest AI assistants are helping professionals manage their time more effectively with smart scheduling.'
+      },
+      {
+        title: 'Wellness Technology Gains Momentum',
+        url: 'https://example.com/wellness-tech',
+        summary: 'New apps combine meditation tracking with productivity metrics for holistic self-improvement.'
+      },
+      {
+        title: 'Future of Work: Hybrid Models Dominate',
+        url: 'https://example.com/future-work',
+        summary: 'Companies report higher satisfaction rates with flexible work arrangements supported by digital tools.'
+      }
+    ];
+    renderNews();
+  }
+}
+
+// ===== VIDEO LOADING (YouTube API) =====
+async function loadVideos() {
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_KEY') {
+    console.log('YouTube API key not set, using mock video data');
+    videoData = [
+      {
+        title: 'Morning Routine for Maximum Productivity',
+        videoId: 'jfKfPfyJRdk',
+        thumbnail: 'https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+      },
+      {
+        title: 'The Science of Mindfulness',
+        videoId: 'inpok4MKVLM',
+        thumbnail: 'https://img.youtube.com/vi/inpok4MKVLM/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=inpok4MKVLM'
+      },
+      {
+        title: 'How to Build Better Habits',
+        videoId: 'BJWZrJW3jWI',
+        thumbnail: 'https://img.youtube.com/vi/BJWZrJW3jWI/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=BJWZrJW3jWI'
+      },
+      {
+        title: 'Time Management Techniques That Work',
+        videoId: 'Oj-j5qpTzSw',
+        thumbnail: 'https://img.youtube.com/vi/Oj-j5qpTzSw/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=Oj-j5qpTzSw'
+      }
+    ];
+    renderVideos();
+    return;
+  }
+
+  try {
+    const searchQuery = 'technology self development';
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=date&maxResults=4&q=${encodeURIComponent(searchQuery)}&key=${YOUTUBE_API_KEY}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`YouTube API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    videoData = data.items.map(item => ({
+      title: item.snippet.title,
+      videoId: item.id.videoId,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+    }));
+    
+    renderVideos();
+  } catch (error) {
+    console.error('Error loading videos:', error);
+    // Fallback to mock data on error
+    videoData = [
+      {
+        title: 'Productivity Tips from Experts',
+        videoId: 'jfKfPfyJRdk',
+        thumbnail: 'https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+      },
+      {
+        title: 'Mindfulness for Beginners',
+        videoId: 'inpok4MKVLM',
+        thumbnail: 'https://img.youtube.com/vi/inpok4MKVLM/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=inpok4MKVLM'
+      },
+      {
+        title: 'Building Atomic Habits',
+        videoId: 'BJWZrJW3jWI',
+        thumbnail: 'https://img.youtube.com/vi/BJWZrJW3jWI/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=BJWZrJW3jWI'
+      },
+      {
+        title: 'Master Your Time',
+        videoId: 'Oj-j5qpTzSw',
+        thumbnail: 'https://img.youtube.com/vi/Oj-j5qpTzSw/mqdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=Oj-j5qpTzSw'
+      }
+    ];
+    renderVideos();
+  }
+}
+
+// ===== RENDER NEWS =====
+function renderNews() {
+  const container = document.getElementById('news-container');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (newsData.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);">Loading news...</p>';
+    return;
+  }
+  
+  newsData.forEach((news, index) => {
+    const card = document.createElement('article');
+    card.className = 'card news-card';
+    card.innerHTML = `
+      <div class="card-content">
+        <span class="tag">News</span>
+        <h3>${escapeHtml(news.title)}</h3>
+        <p>${escapeHtml(news.summary)}</p>
+        <a href="${news.url}" target="_blank" rel="noopener noreferrer" class="read-more">Read article →</a>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ===== RENDER VIDEOS =====
+function renderVideos() {
+  const container = document.getElementById('video-container');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (videoData.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--hs-text-grey);">Loading videos...</p>';
+    return;
+  }
+  
+  videoData.forEach((video, index) => {
+    const card = document.createElement('article');
+    card.className = 'card video-card';
+    card.innerHTML = `
+      <div class="video-thumbnail">
+        <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}">
+        <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="play-button">▶</a>
+      </div>
+      <div class="card-content">
+        <span class="tag">Video</span>
+        <h3>${escapeHtml(video.title)}</h3>
+        <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="read-more">Watch video →</a>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ===== HELPER: ESCAPE HTML =====
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}

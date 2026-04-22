@@ -1,3 +1,24 @@
-```
+```gitignore
+# Dependencies
+node_modules/
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Environment
 .env
+.env.local
+*.env.*
+
+# Logs
+*.log
+
+# Build artifacts
+dist/
+build/
+target/
 ```
