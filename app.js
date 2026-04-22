@@ -310,53 +310,82 @@ let allArticles = [];
 
 async function fetchArticles() {
   try {
-    // Using a mock API response for now - can be replaced with real API
-    const mockArticles = [
-      {
-        title: 'Mental Health Awareness Month: A Toolkit for HR Leaders',
-        excerpt: 'How organizations can support employees in managing work stress and burnout effectively.',
-        tag: 'White Paper',
-        gradient: 'gradient-1',
-        url: 'https://www.headspace.com/work-mental-health'
-      },
-      {
-        title: 'The Workforce State of Mind in 2025',
-        excerpt: 'Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.',
-        tag: 'Research Report',
-        gradient: 'gradient-2',
-        url: 'https://www.headspace.com/workplace-wellbeing'
-      },
-      {
-        title: 'Sam Altman on the Future of AI and Creativity',
-        excerpt: 'A deep dive into how generative models are reshaping the way we think about human potential.',
-        tag: 'Inspiration',
-        gradient: 'gradient-3',
-        url: 'https://www.youtube.com/watch?v=example1'
-      },
-      {
-        title: 'Why professional AI coding tools need purpose-built solutions',
-        excerpt: 'Moving beyond generic LLMs to create tools that truly understand developer workflows.',
-        tag: 'ML Insight',
-        gradient: 'gradient-4',
-        url: 'https://github.blog/ai-coding-tools'
-      },
-      {
-        title: 'Building Resilience in Uncertain Times',
-        excerpt: 'Practical strategies for maintaining mental wellness during periods of change.',
-        tag: 'White Paper',
-        gradient: 'gradient-1',
-        url: 'https://www.headspace.com/resilience'
-      },
-      {
-        title: 'The Science of Mindful Leadership',
-        excerpt: 'How mindfulness practices can transform your approach to management and decision-making.',
-        tag: 'Inspiration',
-        gradient: 'gradient-3',
-        url: 'https://www.nngroup.com/articles/mindful-leadership/'
-      }
-    ];
+    // Check if API key is configured
+    const apiKey = window.NEWS_API_KEY || '';
     
-    allArticles = mockArticles;
+    if (!apiKey || apiKey === 'your_news_api_key_here') {
+      // Use mock articles if no API key
+      console.log('Using mock articles (NEWS_API_KEY not configured)');
+      const mockArticles = [
+        {
+          title: 'Mental Health Awareness Month: A Toolkit for HR Leaders',
+          excerpt: 'How organizations can support employees in managing work stress and burnout effectively.',
+          tag: 'White Paper',
+          gradient: 'gradient-1',
+          url: 'https://newsapi.org/s/mental-health-workplace'
+        },
+        {
+          title: 'The Workforce State of Mind in 2025',
+          excerpt: 'Exploring the shifting landscape of employee wellbeing and the role of AI in mental health.',
+          tag: 'Research Report',
+          gradient: 'gradient-2',
+          url: 'https://newsapi.org/s/workforce-2025'
+        },
+        {
+          title: 'Sam Altman on the Future of AI and Creativity',
+          excerpt: 'A deep dive into how generative models are reshaping the way we think about human potential.',
+          tag: 'Inspiration',
+          gradient: 'gradient-3',
+          url: 'https://openai.com/research'
+        },
+        {
+          title: 'Why professional AI coding tools need purpose-built solutions',
+          excerpt: 'Moving beyond generic LLMs to create tools that truly understand developer workflows.',
+          tag: 'ML Insight',
+          gradient: 'gradient-4',
+          url: 'https://github.blog/ai-coding-tools'
+        },
+        {
+          title: 'Building Resilience in Uncertain Times',
+          excerpt: 'Practical strategies for maintaining mental wellness during periods of change.',
+          tag: 'White Paper',
+          gradient: 'gradient-1',
+          url: 'https://newsapi.org/s/resilience'
+        },
+        {
+          title: 'The Science of Mindful Leadership',
+          excerpt: 'How mindfulness practices can transform your approach to management and decision-making.',
+          tag: 'Inspiration',
+          gradient: 'gradient-3',
+          url: 'https://newsapi.org/s/mindful-leadership'
+        }
+      ];
+      
+      allArticles = mockArticles;
+      renderArticles();
+      return;
+    }
+    
+    // Fetch real articles from NewsAPI
+    const response = await fetch(
+      `https://newsapi.org/v2/top-headlines?category=health&language=en&pageSize=6&apiKey=${apiKey}`
+    );
+    const data = await response.json();
+    
+    if (data.status === 'ok' && data.articles) {
+      allArticles = data.articles.map((article, index) => ({
+        title: article.title,
+        excerpt: article.description || 'Read more about this topic...',
+        tag: 'News',
+        gradient: ['gradient-1', 'gradient-2', 'gradient-3', 'gradient-4'][index % 4],
+        url: article.url
+      }));
+    } else {
+      console.warn('NewsAPI returned error, using fallback');
+      // Fallback to mock if API fails
+      allArticles = mockArticles;
+    }
+    
     renderArticles();
   } catch (error) {
     console.error('Error fetching articles:', error);
